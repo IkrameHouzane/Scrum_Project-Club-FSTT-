@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion - Club FSTT</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <header>
+    <h1>Club Étudiant FSTT</h1>
+    <p>Connectez-vous pour découvrir toutes les activités</p>
+  </header>
+
+  <main>
+    <div class="container">
+      <h2>Connexion</h2>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email"><i class="fas fa-envelope input-icon"></i> Email *</label>
+          <input type="email" id="email" required placeholder="exemple@fstt.ma">
+        </div>
+
+        <div class="form-group">
+          <label for="password"><i class="fas fa-lock input-icon"></i> Mot de passe *</label>
+          <input type="password" id="password" required placeholder="Votre mot de passe">
+        </div>
+
+        <button type="submit">Se connecter</button>
+      </form>
+
+      <div id="message" class="message"></div>
+
+      <div class="link">
+        Pas encore inscrit ? <a href="register.html">Créer un compte</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inscription - Club FSTT</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <header>
+    <h1>Club Étudiant FSTT</h1>
+    <p>Rejoins la communauté !</p>
+  </header>
+
+  <main>
+    <div class="container">
+      <h2>Créer votre compte</h2>
+
+      <form id="registerForm">
+        <div class="form-group">
+          <label for="nom"><i class="fas fa-user input-icon"></i> Nom *</label>
+          <input type="text" id="nom" required placeholder="Votre nom">
+        </div>
+
+        <div class="form-group">
+          <label for="prenom"><i class="fas fa-user input-icon"></i> Prénom *</label>
+          <input type="text" id="prenom" required placeholder="Votre prénom">
+        </div>
+
+        <div class="form-group">
+          <label for="email"><i class="fas fa-envelope input-icon"></i> Email *</label>
+          <input type="email" id="email" required placeholder="exemple@fstt.ma">
+        </div>
+
+        <div class="form-group">
+          <label for="password"><i class="fas fa-lock input-icon"></i> Mot de passe * (min 6 caractères)</label>
+          <input type="password" id="password" required minlength="6" placeholder="Au moins 6 caractères">
+        </div>
+
+        <div class="form-group">
+          <label for="telephone"><i class="fas fa-phone input-icon"></i> Téléphone</label>
+          <input type="tel" id="telephone" placeholder="06XXXXXXXX">
+        </div>
+
+        <div class="form-group">
+          <label for="filiere"><i class="fas fa-graduation-cap input-icon"></i> Filière</label>
+          <input type="text" id="filiere" placeholder="ex: Génie Informatique">
+        </div>
+
+        <div class="form-group">
+          <label for="anneeEtude"><i class="fas fa-calendar input-icon"></i> Année d'études</label>
+          <input type="number" id="anneeEtude" min="1" max="5" placeholder="1 à 5">
+        </div>
+
+        <button type="submit">S'inscrire maintenant</button>
+      </form>
+
+      <div id="message" class="message"></div>
+
+      <div class="link">
+        Déjà membre ? <a href="login.html">Se connecter</a>
+      </div>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

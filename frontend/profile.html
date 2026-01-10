@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon Profil - Club FSTT</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <header>
+    <h1>Club Étudiant FSTT</h1>
+    <p>Mon espace personnel</p>
+  </header>
+
+  <main>
+    <div class="container">
+      <h2>Mon Profil</h2>
+
+      <div id="profileInfo">
+        <p><strong>Nom :</strong> <span id="nom"></span></p>
+        <p><strong>Prénom :</strong> <span id="prenom"></span></p>
+        <p><strong>Email :</strong> <span id="email"></span></p>
+        <p><strong>Téléphone :</strong> <span id="telephone"></span></p>
+        <p><strong>Filière :</strong> <span id="filiere"></span></p>
+        <p><strong>Année d'études :</strong> <span id="anneeEtude"></span></p>
+        <p><strong>Rôle :</strong> <span id="role"></span></p>
+      </div>
+
+      <h3>Modifier mon profil</h3>
+      <form id="editProfileForm">
+        <div class="form-group">
+          <label for="editNom"><i class="fas fa-user"></i> Nom</label>
+          <input type="text" id="editNom">
+        </div>
+
+        <div class="form-group">
+          <label for="editPrenom"><i class="fas fa-user"></i> Prénom</label>
+          <input type="text" id="editPrenom">
+        </div>
+
+        <div class="form-group">
+          <label for="editTelephone"><i class="fas fa-phone"></i> Téléphone</label>
+          <input type="tel" id="editTelephone">
+        </div>
+
+        <div class="form-group">
+          <label for="editFiliere"><i class="fas fa-graduation-cap"></i> Filière</label>
+          <input type="text" id="editFiliere">
+        </div>
+
+        <div class="form-group">
+          <label for="editAnneeEtude"><i class="fas fa-calendar"></i> Année d'études</label>
+          <input type="number" id="editAnneeEtude" min="1" max="5">
+        </div>
+
+        <button type="submit">Enregistrer les modifications</button>
+      </form>
+
+      <div id="message" class="message"></div>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

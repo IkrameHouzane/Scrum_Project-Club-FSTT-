@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liste des Membres - Club FSTT</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+  <header>
+    <h1>Club Étudiant FSTT</h1>
+    <p>Liste des membres </p>
+  </header>
+
+  <main>
+    <div class="container container-wide">
+      <div class="header-section">
+        <h2>Liste des membres</h2>
+        <button id="exportExcelBtn" class="btn btn-primary">Exporter en Excel</button>
+      </div>
+
+      <div id="message" class="message"></div>
+
+      <table id="membresTable">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nom Prénom</th>
+            <th>Email</th>
+            <th>Téléphone</th>
+            <th>Filière</th>
+            <th>Année</th>
+            <th>Rôle</th>
+            <th>Poste</th>
+            <th>Actif</th>
+            <th>Inscrit le</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="membresBody"></tbody>
+      </table>
+
+      <!-- Modal pour assigner le rôle -->
+      <div id="roleModal" class="modal">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <h3>Assigner un rôle</h3>
+          <form id="roleForm">
+            <label for="roleSelect">Rôle :</label>
+            <select id="roleSelect" required>
+              <option value="">Sélectionner un rôle</option>
+              <option value="MEMBRE">Membre</option>
+              <option value="MEMBRE_BUREAU">Membre Bureau</option>
+              <option value="ADMIN">Administrateur</option>
+            </select>
+            <label for="posteSelect">Poste (optionnel) :</label>
+            <select id="posteSelect">
+              <option value="">Sélectionner un poste</option>
+              <option value="Vice-Président">Vice-Président</option>
+              <option value="Trésorier">Trésorier</option>
+              <option value="Chef de cellule ">Chef de cellule </option>
+              <option value="RH">RH</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Assigner</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Modal pour modifier un membre -->
+      <div id="editModal" class="modal">
+        <div class="modal-content">
+          <span class="close">&times;</span>
+          <h3>Modifier un membre</h3>
+          <form id="editForm">
+            <label for="editNom">Nom :</label>
+            <input type="text" id="editNom" required>
+
+            <label for="editPrenom">Prénom :</label>
+            <input type="text" id="editPrenom" required>
+
+            <label for="editEmail">Email :</label>
+            <input type="email" id="editEmail" required>
+
+            <label for="editTelephone">Téléphone :</label>
+            <input type="text" id="editTelephone">
+
+            <label for="editFiliere">Filière :</label>
+            <input type="text" id="editFiliere">
+
+            <label for="editAnneeEtude">Année d'étude :</label>
+            <input type="text" id="editAnneeEtude">
+
+            <label for="editRole">Rôle :</label>
+            <select id="editRole" required>
+              <option value="MEMBRE">Membre</option>
+              <option value="MEMBRE_BUREAU">Membre Bureau</option>
+              <option value="ADMIN">Administrateur</option>
+            </select>
+
+            <label for="editPoste">Poste :</label>
+            <select id="editPoste">
+              <option value="">Aucun poste</option>
+              <option value="Vice-Président">Vice-Président</option>
+              <option value="Trésorier">Trésorier</option>
+              <option value="Chef de cellule ">Chef de cellule </option>
+              <option value="RH">RH</option>
+            </select>
+
+            <label for="editEstActif">Actif :</label>
+            <select id="editEstActif">
+              <option value="1">Oui</option>
+              <option value="0">Non</option>
+            </select>
+
+            <button type="submit" class="btn btn-primary">Modifier</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

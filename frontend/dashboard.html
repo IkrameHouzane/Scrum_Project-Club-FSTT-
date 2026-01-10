@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Club FSTT</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Club Étudiant FSTT</h1>
+    <p>Tableau de bord</p>
+  </header>
+
+  <main>
+    <div class="container container-wide">
+      <h2>Bienvenue</h2>
+
+      <div class="header-section" style="justify-content:center; gap:1rem; margin-top:1.5rem;">
+        <a id="activitiesBtn" class="btn btn-primary" href="activities.html">Consulter les activités</a>
+        <a id="profileBtn" class="btn btn-outline" href="profile.html">Mon profil</a>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    // Accès restreint : uniquement membres non-admin
+    (function(){
+      const token = localStorage.getItem('token');
+      if (!token) { window.location.href = 'login.html'; return; }
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (!user || !user.role) { window.location.href = 'login.html'; return; }
+      if (user.role === 'ADMIN') { window.location.href = 'membres.html'; return; }
+    })();
+  </script>
+</body>
+</html>

@@ -1183,34 +1183,73 @@ if (isCreatePage) {
 const isMembersPage = document.getElementById('membresTable') !== null;
 
 if (isMembersPage) {
-  console.log('👑 Détection réussie : page avec tableau des membres');
+  console.log('👑 Page gestion membres détectée');
 
-  // Exécute immédiatement (pas besoin de DOMContentLoaded multiple)
+  // PROTECTION IMMÉDIATE : on vérifie le token dès le chargement
+  const token = localStorage.getItem('token');
+  if (!token) {
+    console.log('❌ Pas de token sur page membres → redirection login');
+    window.location.href = 'login.html';
+  }
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (user.role !== 'ADMIN') {
+    alert('Accès réservé aux administrateurs uniquement');
+    window.location.href = 'activite_page.html';
+  }
+
+  // Si tout est OK, on continue
+  console.log('Admin + token OK → chargement membres...');
+
+  // Exécution du chargement
   (async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.log('❌ Pas de token → redirection login');
-      window.location.href = 'login.html';
-      return;
-    }
-
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (user.role !== 'ADMIN') {
-      console.warn('⚠️ Non admin → redirection');
-      alert('Accès réservé aux administrateurs uniquement');
-      window.location.href = 'activite_page.html';
-      return;
-    }
-
-    console.log('Admin validé → chargement membres...');
     await loadMembersList();
   })();
 
-  // Gestion du bouton export
-  document.getElementById('exportExcelBtn')?.addEventListener('click', () => {
-    console.log('Export Excel déclenché');
-    window.location.href = `${API_BASE_URL_MEMBRES}/membres/export`;
-  });
+  // Bouton export avec token
+ // Bouton export - VERSION QUI MARCHE (envoie le token dans les headers)
+document.getElementById('exportExcelBtn')?.addEventListener('click', async () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('Veuillez vous reconnecter pour exporter');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/membres/export`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`   // ← TOKEN ENVOYÉ ICI !
+      }
+    });
+
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        alert('Session expirée ou accès refusé. Veuillez vous reconnecter.');
+        localStorage.clear();
+        window.location.href = 'login.html';
+        return;
+      }
+      throw new Error('Erreur lors de l\'export');
+    }
+
+    // Téléchargement du fichier Excel
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Liste_Membres_Club_FSTT.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+
+    console.log('Export téléchargé avec succès !');
+  } catch (err) {
+    console.error('Échec export:', err);
+    alert('Impossible d\'exporter : ' + err.message);
+  }
+});
 }
 
 // Fonction de chargement (simplifiée)
@@ -1225,16 +1264,30 @@ async function loadMembersList() {
 
   try {
     const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Pas de token trouvé → redirection login');
+      window.location.href = 'login.html';
+      return;
+    }
+
     const response = await fetch(`${API_BASE_URL_MEMBRES}`, {
+      method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,  // ← ICI : on envoie le token !
+        'Content-Type': 'application/json'
       }
     });
 
     console.log('GET /membres - Statut:', response.status);
 
     if (!response.ok) {
-      throw new Error(`Erreur ${response.status} - ${response.statusText}`);
+      if (response.status === 401 || response.status === 403) {
+        alert('Session expirée ou accès refusé. Veuillez vous reconnecter.');
+        localStorage.clear();
+        window.location.href = 'login.html';
+        return;
+      }
+      throw new Error(`Erreur ${response.status}`);
     }
 
     const result = await response.json();

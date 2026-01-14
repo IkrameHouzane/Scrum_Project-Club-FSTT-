@@ -33,7 +33,8 @@ const requireAdmin = (req, res, next) => {
 // GET /api/admin/membres/export - Export Excel de la liste des membres (ADMIN seulement)
 router.get('/membres/export', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const [membres] = await db.promise().query(
+    // Utilisation de db.execute() au lieu de db.promise().query()
+    const [membres] = await db.execute(
       `SELECT id, nom, prenom, email, telephone, filiere, anneeEtude, role, poste, estActif, createdAt
        FROM membres
        ORDER BY nom, prenom`

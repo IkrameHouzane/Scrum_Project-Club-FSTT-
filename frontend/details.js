@@ -315,11 +315,7 @@ function displayActivityDetails(activity) {
                     <h3><i class="fas fa-users"></i> Places disponibles</h3>
                     <p><strong>Disponibles :</strong> ${activity.placesRestantes || 0} / ${activity.placesMax || 0} places</p>
                     ${activity.placesRestantes > 0 ? `
-                        <div style="margin-top: 10px;">
-                            <a href="inscrire.html?id=${activity.id}" class="btn btn-success btn-small">
-                                <i class="fas fa-user-plus"></i> S'inscrire
-                            </a>
-                        </div>
+ 
                     ` : ''}
                 </div>
                 
@@ -337,6 +333,18 @@ function displayActivityDetails(activity) {
                     <h3><i class="fas fa-user-tie"></i> Organisateur</h3>
                     <p>${activity.organisateur_nom}</p>
                     ${activity.organisateur_poste ? `<p><small>${activity.organisateur_poste}</small></p>` : ''}
+                </div>
+                ` : ''}
+                
+                ${canManageActivities() ? `
+                <div class="details-section" id="inscriptions-section">
+                    <h3><i class="fas fa-list-alt"></i> Liste des inscrits <span id="inscriptions-count" style="color: #7f8c8d; font-size: 0.8em;">(0)</span></h3>
+                    <button class="btn btn-small btn-secondary" onclick="chargerInscriptions(${activity.id})" style="margin-bottom: 15px;">
+                        <i class="fas fa-sync-alt"></i> Actualiser
+                    </button>
+                    <div id="inscriptions-list" class="inscriptions-list">
+                        <div class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>
+                    </div>
                 </div>
                 ` : ''}
             </div>
@@ -392,6 +400,11 @@ function displayActivityDetails(activity) {
     
     // Ajouter le CSS si nécessaire
     addDetailsCSS();
+    
+    // Charger les inscriptions si l'utilisateur est bureau
+    if (canManageActivities()) {
+        chargerInscriptions(activity.id);
+    }
 }
 
 function addDetailsCSS() {
@@ -422,7 +435,7 @@ function addDetailsCSS() {
         }
         .details-title h1 {
             margin: 0;
-            color: #2c3e50;
+            color: var(--dark);
             font-size: 2.2rem;
             line-height: 1.3;
             flex: 1;
@@ -434,7 +447,7 @@ function addDetailsCSS() {
             flex-wrap: wrap;
         }
         .category-badge {
-            background: linear-gradient(135deg, #6a89cc, #4a69bd);
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
             color: white;
             padding: 8px 16px;
             border-radius: 20px;
@@ -445,12 +458,12 @@ function addDetailsCSS() {
             gap: 8px;
         }
         .activity-id {
-            background: #f8f9fa;
-            color: #6c757d;
+            background: var(--light);
+            color: var(--gray);
             padding: 6px 12px;
             border-radius: 6px;
             font-size: 0.85rem;
-            border: 1px solid #dee2e6;
+            border: 1px solid var(--border);
         }
         .details-content {
             margin: 30px 0;
@@ -466,14 +479,14 @@ function addDetailsCSS() {
         }
         .details-section h3 {
             margin: 0 0 15px 0;
-            color: #34495e;
+            color: var(--dark);
             font-size: 1.2rem;
             display: flex;
             align-items: center;
             gap: 10px;
         }
         .details-section h3 i {
-            color: #3498db;
+            color: var(--secondary);
             width: 24px;
         }
         .details-section p {
@@ -582,6 +595,43 @@ function addDetailsCSS() {
             font-size: 1.4rem;
             color: #3498db;
         }
+        .inscriptions-list {
+            margin-top: 15px;
+        }
+        .inscription-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #3498db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .inscription-item-info {
+            flex: 1;
+        }
+        .inscription-item-info strong {
+            color: #2c3e50;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .inscription-item-info span {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            display: block;
+            margin: 3px 0;
+        }
+        .inscription-date {
+            color: #95a5a6;
+            font-size: 0.85em;
+        }
+        .empty-inscriptions {
+            text-align: center;
+            padding: 30px;
+            color: #95a5a6;
+            font-style: italic;
+        }
         @media (max-width: 768px) {
             .details-card {
                 padding: 20px;
@@ -689,3 +739,69 @@ async function cancelActivity(activityId) {
         }
     }
 }
+
+// Charger les inscriptions pour une activité (Bureau)
+async function chargerInscriptions(activityId) {
+    const listContainer = document.getElementById('inscriptions-list');
+    const countSpan = document.getElementById('inscriptions-count');
+    
+    if (!listContainer) return;
+    
+    listContainer.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>';
+    
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('Non authentifié');
+        
+        const response = await fetch(`http://localhost:5000/api/inscriptions/activite/${activityId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+        
+        const inscriptions = await response.json();
+        
+        if (countSpan) {
+            countSpan.textContent = `(${inscriptions.length})`;
+        }
+        
+        if (inscriptions.length === 0) {
+            listContainer.innerHTML = '<div class="empty-inscriptions"><p>Aucun membre inscrit pour le moment</p></div>';
+            return;
+        }
+        
+        listContainer.innerHTML = inscriptions.map(insc => {
+            const dateInscription = new Date(insc.date_inscription).toLocaleDateString('fr-FR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            return `
+                <div class="inscription-item">
+                    <div class="inscription-item-info">
+                        <strong>${insc.prenom || ''} ${insc.nom || ''}</strong>
+                        <span><i class="fas fa-envelope"></i> ${insc.email || 'N/A'}</span>
+                        ${insc.telephone ? `<span><i class="fas fa-phone"></i> ${insc.telephone}</span>` : ''}
+                        ${insc.filiere ? `<span><i class="fas fa-graduation-cap"></i> ${insc.filiere}</span>` : ''}
+                        <span class="inscription-date"><i class="far fa-calendar"></i> Inscrit le ${dateInscription}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+    } catch (error) {
+        console.error('Erreur chargement inscriptions:', error);
+        listContainer.innerHTML = '<div class="empty-inscriptions"><p style="color: #e74c3c;">Erreur lors du chargement des inscriptions</p></div>';
+    }
+}
+
+// Exposer la fonction globalement
+window.chargerInscriptions = chargerInscriptions;

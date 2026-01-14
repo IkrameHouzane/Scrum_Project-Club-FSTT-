@@ -414,6 +414,7 @@ function updateUserInterface() {
   const logoutBtn = document.getElementById('logout-btn');
   const createLink = document.getElementById('create-link');
   const profileLink = document.getElementById('profile-link'); // Ajouté
+  const mesInscriptionsLink = document.getElementById('mes-inscriptions-link');
   
   if (user && user.id) {
     if (userRoleEl) {
@@ -425,6 +426,11 @@ function updateUserInterface() {
     // Afficher le lien profil si l'utilisateur est connecté
     if (profileLink) {
       profileLink.style.display = 'inline-block';
+    }
+
+    // Afficher "Mes inscriptions" si l'utilisateur est connecté
+    if (mesInscriptionsLink) {
+      mesInscriptionsLink.style.display = 'inline-block';
     }
     
     if (createLink) {
@@ -444,6 +450,7 @@ function updateUserInterface() {
     if (logoutBtn) logoutBtn.style.display = 'none';
     if (createLink) createLink.style.display = 'none';
     if (profileLink) profileLink.style.display = 'none'; // Cacher le lien profil
+    if (mesInscriptionsLink) mesInscriptionsLink.style.display = 'none';
   }
 }
 
@@ -664,12 +671,12 @@ function createActivityCard(activity) {
       
       <div class="action-buttons">
         ${activity.statut !== 'Annulee' && (activity.placesRestantes || 0) > 0 ? `
-          <a href="inscrire.html?id=${activity.id}" class="btn btn-small btn-success">
+          <button onclick="showInscriptionModal(${activity.id})" class="btn btn-small btn-success">
             <i class="fas fa-user-plus"></i> S'inscrire
-          </a>
+          </button>
         ` : ''}
 
-        <a href="details?id=${activity.id}" class="btn btn-small btn-secondary">
+        <a href="details.html?id=${activity.id}" class="btn btn-small btn-secondary">
           <i class="fas fa-eye"></i> Détails
         </a>
 
@@ -745,6 +752,34 @@ function setupEventListeners() {
         modal.style.display = 'none';
       }
     });
+  }
+
+  // Configuration du modal d'inscription
+  const inscriptionModal = document.getElementById('inscription-modal');
+  if (inscriptionModal) {
+    const closeBtns = inscriptionModal.querySelectorAll('.close-modal-inscription');
+    closeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        inscriptionModal.style.display = 'none';
+      });
+    });
+    
+    inscriptionModal.addEventListener('click', (e) => {
+      if (e.target === inscriptionModal) {
+        inscriptionModal.style.display = 'none';
+      }
+    });
+
+    // Bouton de confirmation d'inscription
+    const confirmBtn = document.getElementById('confirm-inscription-btn');
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', async () => {
+        const activityId = confirmBtn.dataset.activityId;
+        if (activityId) {
+          await confirmerInscriptionDepuisModal(activityId);
+        }
+      });
+    }
   }
 }
 
@@ -1337,6 +1372,234 @@ async function loadMembersList() {
 
 
 // ================================================
+// MODAL D'INSCRIPTION
+// ================================================
+
+// Afficher le modal d'inscription avec les détails de l'activité
+async function showInscriptionModal(activityId) {
+  console.log('📝 Ouverture modal d\'inscription - ID:', activityId);
+
+  const modal = document.getElementById('inscription-modal');
+  const modalBody = document.getElementById('inscription-modal-body');
+  const confirmBtn = document.getElementById('confirm-inscription-btn');
+
+  if (!modal || !modalBody || !confirmBtn) {
+    console.error('❌ Modal ou éléments manquants');
+    return;
+  }
+
+  // Désactiver le bouton pendant le chargement
+  confirmBtn.disabled = true;
+  confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
+  modalBody.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement des détails...</div>';
+
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Non authentifié');
+    }
+
+    // Récupérer les détails complets de l'activité
+    const response = await fetch(`${API_BASE_URL_ACTIVITES}/${activityId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('Réponse activité:', result);
+
+    if (!result.success || !result.data) {
+      throw new Error('Activité non trouvée');
+    }
+
+    const activity = result.data;
+
+    // Vérifier que l'activité est disponible
+    if (activity.statut === 'Annulee' || activity.statut === 'Terminee') {
+      modalBody.innerHTML = `
+        <div class="error-message">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p>Cette activité n'est plus disponible pour les inscriptions.</p>
+        </div>
+      `;
+      confirmBtn.style.display = 'none';
+      modal.style.display = 'flex';
+      return;
+    }
+
+    if (activity.placesRestantes <= 0) {
+      modalBody.innerHTML = `
+        <div class="error-message">
+          <i class="fas fa-exclamation-triangle"></i>
+          <p>Cette activité est complète. Aucune place disponible.</p>
+        </div>
+      `;
+      confirmBtn.style.display = 'none';
+      modal.style.display = 'flex';
+      return;
+    }
+
+    // Formatage des dates
+    const dateDebut = new Date(activity.dateDebut).toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+
+    const dateFin = activity.dateFin 
+      ? new Date(activity.dateFin).toLocaleDateString('fr-FR', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      : '';
+
+    // Afficher les détails de l'activité
+    modalBody.innerHTML = `
+      <div class="inscription-activity-details">
+        <div class="detail-row">
+          <span class="detail-label"><i class="far fa-calendar-alt"></i> Date de début</span>
+          <span class="detail-value">${dateDebut}</span>
+        </div>
+        
+        ${dateFin ? `
+        <div class="detail-row">
+          <span class="detail-label"><i class="far fa-clock"></i> Date de fin</span>
+          <span class="detail-value">${dateFin}</span>
+        </div>
+        ` : ''}
+        
+        <div class="detail-row">
+          <span class="detail-label"><i class="fas fa-map-marker-alt"></i> Lieu</span>
+          <span class="detail-value">${activity.lieu || 'Non spécifié'}</span>
+        </div>
+        
+        <div class="detail-row">
+          <span class="detail-label"><i class="fas fa-users"></i> Places disponibles</span>
+          <span class="detail-value ${activity.placesRestantes < 5 ? 'places-warning' : ''}">
+            ${activity.placesRestantes} / ${activity.placesMax}
+          </span>
+        </div>
+        
+        ${activity.description ? `
+        <div class="detail-row description-row">
+          <span class="detail-label"><i class="fas fa-align-left"></i> Description</span>
+          <div class="detail-description">${activity.description.replace(/\n/g, '<br>')}</div>
+        </div>
+        ` : ''}
+        
+        ${activity.organisateur_nom ? `
+        <div class="detail-row">
+          <span class="detail-label"><i class="fas fa-user-tie"></i> Organisateur</span>
+          <span class="detail-value">${activity.organisateur_nom}</span>
+        </div>
+        ` : ''}
+        
+        <div class="info-message" style="margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #27ae60;">
+          <i class="fas fa-info-circle"></i>
+          <p style="margin: 0; color: #2e7d32;">Vous êtes sur le point de vous inscrire à cette activité.</p>
+        </div>
+      </div>
+    `;
+
+    // Réactiver le bouton et stocker l'ID de l'activité
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = '<i class="fas fa-check"></i> Confirmer l\'inscription';
+    confirmBtn.dataset.activityId = activityId;
+    confirmBtn.style.display = 'inline-block';
+
+    // Afficher le modal
+    modal.style.display = 'flex';
+
+  } catch (error) {
+    console.error('Erreur chargement activité:', error);
+    modalBody.innerHTML = `
+      <div class="error-message">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>Erreur lors du chargement des détails de l'activité.</p>
+        <p><small>${error.message}</small></p>
+      </div>
+    `;
+    confirmBtn.style.display = 'none';
+    modal.style.display = 'flex';
+  }
+}
+
+// Confirmer l'inscription depuis le modal
+async function confirmerInscriptionDepuisModal(activityId) {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  if (!user || !user.id) {
+    showNotification('Erreur: Utilisateur non connecté', true);
+    return;
+  }
+
+  const confirmBtn = document.getElementById('confirm-inscription-btn');
+  const modal = document.getElementById('inscription-modal');
+
+  if (confirmBtn) {
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inscription en cours...';
+  }
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`http://localhost:5000/api/inscriptions`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        membre_id: user.id,
+        activite_id: activityId
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok && data.success) {
+      showNotification('✅ Inscription réussie !', false);
+      
+      // Fermer le modal
+      if (modal) {
+        modal.style.display = 'none';
+      }
+      
+      // Recharger les activités pour mettre à jour les places disponibles
+      setTimeout(() => {
+        loadActivities();
+      }, 500);
+    } else {
+      showNotification(`❌ ${data.error || data.message || 'Erreur lors de l\'inscription'}`, true);
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<i class="fas fa-check"></i> Confirmer l\'inscription';
+      }
+    }
+  } catch (error) {
+    console.error('Erreur inscription:', error);
+    showNotification(`❌ Erreur: ${error.message}`, true);
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = '<i class="fas fa-check"></i> Confirmer l\'inscription';
+    }
+  }
+}
+
+// ================================================
 // EXPOSER LES FONCTIONS
 // ================================================
 window.loadActivities = loadActivities;
@@ -1344,6 +1607,7 @@ window.showCancelModal = showCancelModal;
 window.cancelActivity = cancelActivity;
 window.populateCategorySelect = populateCategorySelect;
 window.updateUserInterface = updateUserInterface;
+window.showInscriptionModal = showInscriptionModal;
 
 console.log('✅ === script.js CHARGE AVEC SUCCES ===');
 

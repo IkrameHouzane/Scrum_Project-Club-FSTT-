@@ -679,3 +679,129 @@ body {
     color: #ffc107;
     margin-bottom: 20px;
 }
+
+/* Modal d'inscription */
+.modal-inscription-content {
+    max-width: 600px;
+}
+
+.close-modal-inscription {
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--gray);
+    transition: color 0.3s;
+}
+
+.close-modal-inscription:hover {
+    color: var(--dark);
+}
+
+.inscription-activity-details {
+    padding: 0.5rem 0;
+}
+
+.inscription-activity-details h4 {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--light);
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin: 1rem 0;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid var(--primary);
+}
+
+.detail-label {
+    font-weight: 600;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+}
+
+.detail-label i {
+    color: var(--primary);
+    width: 20px;
+}
+
+.detail-value {
+    color: #27ae60;
+    font-weight: 500;
+    text-align: right;
+    flex: 1;
+}
+
+.detail-value.places-warning {
+    color: #e67e22;
+    font-weight: 600;
+}
+
+.description-row {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.detail-description {
+    margin-top: 0.5rem;
+    color: #555;
+    line-height: 1.6;
+    width: 100%;
+}
+
+.info-message {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: #e8f5e9;
+    border-radius: 8px;
+    border-left: 4px solid #27ae60;
+}
+
+.info-message i {
+    color: #27ae60;
+    margin-right: 0.5rem;
+}
+
+.error-message {
+    text-align: center;
+    padding: 2rem;
+    color: var(--danger);
+}
+
+.error-message i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.error-message p {
+    margin: 0.5rem 0;
+}
+
+.error-message small {
+    color: var(--gray);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .modal-inscription-content {
+        width: 95%;
+        max-width: 95%;
+    }
+    
+    .detail-row {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .detail-value {
+        text-align: left;
+    }
+}

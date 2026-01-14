@@ -9,10 +9,17 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// Logger global pour pister les requêtes
+app.use((req, res, next) => {
+  console.log(`📡 [${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
+  next();
+});
+
 // Importer TOUT depuis membres.js en une seule fois
 const { authenticateToken, requireAdmin, router: membresRouter } = require('./routes/membres');
 const adminRouter = require('./routes/admin');
 const activiteRoutes = require('./routes/activiteRoutes');
+const inscriptionsRouter = require('./routes/inscriptions');
 
 // Appliquer les routes
 app.use('/api/membres', membresRouter);   // ← utilise celui déjà importé
@@ -20,6 +27,9 @@ app.use('/api/admin', adminRouter);
 
 // Appliquer tes routes activités (déjà protégées à l'intérieur)
 app.use('/api/activites', activiteRoutes);  // ← recommandé, pas besoin de middleware global
+
+// Routes inscriptions
+app.use('/api/inscriptions', inscriptionsRouter);
 
 // Connexion MySQL
 const db = mysql.createConnection({

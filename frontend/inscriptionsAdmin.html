@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion des Inscriptions - Club FSTT</title>
+  <link rel="stylesheet" href="style1.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .inscriptions-table-container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-top: 20px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 12px 15px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f8fafc;
+      color: #1e293b;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background-color: #f1f5f9;
+    }
+
+    .badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.85em;
+      font-weight: 500;
+    }
+
+    .badge-inscrit {
+      background-color: #dcfce7;
+      color: #166534;
+    }
+
+    .search-bar {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .search-bar input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <h1>🏓 Club FSTT</h1>
+        <span class="subtitle">Administration</span>
+      </div>
+      <div class="nav-links">
+        <a href="dashboard_admin.html">
+          <i class="fas fa-home"></i> Dashboard
+        </a>
+        <a href="membres.html">
+          <i class="fas fa-users"></i> Gestion des Membres
+        </a>
+        <a href="gestion_activite.html">
+          <i class="fas fa-calendar-alt"></i> Gestion des Activités
+        </a>
+        <a href="inscriptionsAdmin.html" class="active">
+          <i class="fas fa-ticket-alt"></i> Gestion des Inscriptions
+        </a>
+        <div class="user-info">
+          <button id="logout-btn" class="btn btn-small">Déconnexion</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Contenu principal -->
+  <main class="container">
+    <div class="page-header">
+      <h1><i class="fas fa-clipboard-list"></i> Toutes les Inscriptions</h1>
+      <p>Liste complète des inscriptions aux activités du club</p>
+    </div>
+
+    <div class="inscriptions-table-container">
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Rechercher par membre, activité ou lieu...">
+      </div>
+
+      <table id="inscriptionsTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Membre</th>
+            <th>Activité</th>
+            <th>Lieu</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="inscriptionsList">
+          <tr>
+            <td colspan="6" style="text-align: center;">Chargement des inscriptions...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <p>© 2024 Club FSTT - Panel Administrateur</p>
+    </div>
+  </footer>
+
+  <script src="auth.js"></script>
+  <script src="inscriptionsAdmin.js"></script>
+</body>
+
+</html>

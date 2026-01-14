@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mes inscriptions - Club FSTT</title>
+  <link rel="stylesheet" href="style1.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <h1>🏓 Club FSTT</h1>
+        <span class="subtitle">Mes inscriptions</span>
+      </div>
+      <div class="nav-links">
+        <a href="activite_page.html">
+          <i class="fas fa-calendar-alt"></i> Activités
+        </a>
+        <a href="mes_inscriptions.html" class="active" id="mes-inscriptions-link">
+          <i class="fas fa-ticket-alt"></i> Mes inscriptions
+        </a>
+        <a href="create.html" id="create-link" style="display:none;">
+          <i class="fas fa-plus-circle"></i> Créer
+        </a>
+        <div class="user-info">
+          <a href="profile.html" id="profile-link" class="profile-link" style="display:none; margin-right: 15px;">
+            <i class="fas fa-user-circle"></i> Mon profil
+          </a>
+          <span id="user-role" style="display:none;"></span>
+          <button id="login-btn" class="btn btn-small" style="display:none;" onclick="window.location.href='login.html'">Se connecter</button>
+          <button id="logout-btn" class="btn btn-small btn-danger" style="display:none; margin-left:10px;">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="page-header">
+      <h2><i class="fas fa-ticket-alt"></i> Mes inscriptions</h2>
+      <div class="header-actions">
+        <button id="refresh-btn" class="btn btn-secondary">
+          <i class="fas fa-sync-alt"></i> Actualiser
+        </button>
+      </div>
+    </div>
+
+    <div id="message-container" class="message-container"></div>
+
+    <div class="activities-grid" id="inscriptions-container">
+      <div class="loading">
+        <i class="fas fa-spinner fa-spin"></i> Chargement...
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <p>© 2026 Club FSTT</p>
+      <p>Développé avec ❤️ par l'équipe Scrum</p>
+      <p id="debug-badge" style="font-size:12px; opacity:.7;"></p>
+    </div>
+  </footer>
+
+  <script>
+    // Debug visible si les scripts ne se chargent pas
+    window.__scriptsLoaded = { auth: false, mes: false };
+    window.__scriptLoadError = (name) => {
+      const container = document.getElementById('inscriptions-container');
+      if (container) {
+        container.innerHTML = `
+          <div class="error-state">
+            <i class="fas fa-exclamation-triangle"></i>
+            <h3>Erreur de chargement</h3>
+            <p>Le fichier <strong>${name}</strong> n'a pas été chargé (chemin incorrect ou serveur frontend).</p>
+            <p>Ouvre la console (F12) → onglet Network → vérifie si ${name} est en 404.</p>
+          </div>
+        `;
+      }
+    };
+
+    // Badge pour vérifier que cette version HTML est bien servie (pas du cache)
+    const badge = document.getElementById('debug-badge');
+    if (badge) {
+      badge.textContent = 'DEBUG: HTML chargé (' + new Date().toLocaleTimeString() + ')';
+    }
+
+    // Si après 1.5s le script principal n'est pas chargé, afficher un message
+    setTimeout(() => {
+      if (!window.__scriptsLoaded.mes) {
+        window.__scriptLoadError('mes_inscriptions.js');
+      }
+    }, 1500);
+  </script>
+  <script>
+    // Chargement des scripts avec cache-busting (évite cache Live Server)
+    const v = Date.now();
+    const badge2 = document.getElementById('debug-badge');
+    if (badge2) badge2.textContent += ' | v=' + v;
+
+    const loadScript = (src, name) => new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.async = false;
+      s.onload = () => {
+        window.__scriptsLoaded[name] = true;
+        resolve();
+      };
+      s.onerror = () => {
+        window.__scriptLoadError(src);
+        reject(new Error('Erreur chargement ' + src));
+      };
+      document.body.appendChild(s);
+    });
+
+    Promise.resolve()
+      .then(() => loadScript('./auth.js?v=' + v, 'auth'))
+      .then(() => loadScript('./mes_inscriptions.js?v=' + v, 'mes'))
+      .catch(() => {});
+  </script>
+</body>
+</html>

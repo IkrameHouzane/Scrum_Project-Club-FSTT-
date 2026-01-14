@@ -286,7 +286,7 @@ async function loadMyInscriptions() {
 
         <div class="activity-footer">
           <div class="action-buttons">
-            <a href="details.html?id=${insc.activite_id}" class="btn btn-small btn-secondary">
+            <a href="details?id=${insc.activite_id}" class="btn btn-small btn-secondary">
               <i class="fas fa-eye"></i> Détails
             </a>
             <button class="btn btn-small btn-danger" onclick="cancelInscription(${insc.id})">

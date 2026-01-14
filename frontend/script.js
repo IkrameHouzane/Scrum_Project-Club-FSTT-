@@ -676,7 +676,7 @@ function createActivityCard(activity) {
           </button>
         ` : ''}
 
-        <a href="details.html?id=${activity.id}" class="btn btn-small btn-secondary">
+        <a href="details?id=${activity.id}" class="btn btn-small btn-secondary">
           <i class="fas fa-eye"></i> Détails
         </a>
 

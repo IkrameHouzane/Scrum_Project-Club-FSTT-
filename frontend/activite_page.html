@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Club FSTT - Activités</title>
+    <link rel="stylesheet" href="style1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <h1>🏓 Club FSTT</h1>
+                <span class="subtitle">Gestion des activités</span>
+            </div>
+            <div class="nav-links">
+                <a href="activite_page.html" class="active">
+                    <i class="fas fa-calendar-alt"></i> Activités
+                </a>
+                <a href="create.html" id="create-link" style="display:none;">
+                    <i class="fas fa-plus-circle"></i> Créer
+                </a>
+                <div class="user-info">
+                    <!-- Ajout du lien vers le profil -->
+                    <a href="profile.html" id="profile-link" class="profile-link" style="display:none; margin-right: 15px;">
+                        <i class="fas fa-user-circle"></i> Mon profil
+                    </a>
+                    <span id="user-role">Non connecté</span>
+                    <button id="login-btn" class="btn btn-small" onclick="window.location.href='login.html'">Se connecter</button>
+                    <button id="logout-btn" class="btn btn-small btn-danger" style="display:none; margin-left:10px;">
+                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="container">
+        <!-- En-tête avec filtres -->
+        <div class="page-header">
+            <h2><i class="fas fa-calendar-day"></i> Activités à venir</h2>
+            <div class="header-actions">
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="Rechercher une activité...">
+                    <i class="fas fa-search"></i>
+                </div>
+                <select id="category-filter" class="filter-select">
+                    <option value="">Toutes les catégories</option>
+                </select>
+                <button id="refresh-btn" class="btn btn-secondary">
+                    <i class="fas fa-sync-alt"></i> Actualiser
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages d'état -->
+        <div id="message-container" class="message-container"></div>
+
+        <!-- Liste des activités -->
+        <div class="activities-grid" id="activities-container">
+            <!-- Les activités seront chargées ici par JavaScript -->
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i> Chargement des activités...
+            </div>
+        </div>
+
+        <!-- Modal de confirmation d'annulation -->
+        <div id="cancel-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Confirmer l'annulation</h3>
+                    <span class="close-modal">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <p id="cancel-message">Êtes-vous sûr de vouloir annuler cette activité ?</p>
+                    <p><strong>⚠️ Attention :</strong> Un email sera envoyé à tous les participants inscrits.</p>
+                    <div id="participants-preview" class="participants-preview">
+                        <p><i class="fas fa-users"></i> <span id="participants-count">0</span> participant(s) seront notifié(s)</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="cancel-confirm-btn" class="btn btn-danger">
+                        <i class="fas fa-ban"></i> Oui, annuler l'activité
+                    </button>
+                    <button class="btn btn-secondary close-modal">Non, garder l'activité</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>© 2024 Club FSTT</p>
+            <p>Développé avec ❤️ par l'équipe Scrum</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

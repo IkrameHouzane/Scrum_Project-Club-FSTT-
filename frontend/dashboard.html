@@ -17,7 +17,7 @@
       <h2>Bienvenue</h2>
 
       <div class="header-section" style="justify-content:center; gap:1rem; margin-top:1.5rem;">
-        <a id="activitiesBtn" class="btn btn-primary" href="activities.html">Consulter les activités</a>
+        <a id="manageActivitiesBtn" class="btn btn-secondary" href="gestion_activite.html" style="display: none;">Gérer les activités</a>
         <a id="profileBtn" class="btn btn-outline" href="profile.html">Mon profil</a>
       </div>
 
@@ -31,7 +31,15 @@
       if (!token) { window.location.href = 'login.html'; return; }
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       if (!user || !user.role) { window.location.href = 'login.html'; return; }
-      if (user.role === 'ADMIN') { window.location.href = 'membres.html'; return; }
+      if (user.role === 'ADMIN') { window.location.href = 'dashboard_admin.html'; return; }
+
+      // Afficher le bouton de gestion des activités pour les MEMBRE_BUREAU
+      if (user.role === 'MEMBRE_BUREAU') {
+        const manageBtn = document.getElementById('manageActivitiesBtn');
+        if (manageBtn) {
+          manageBtn.style.display = 'inline-block';
+        }
+      }
     })();
   </script>
 </body>

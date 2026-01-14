@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Détails activité - Club FSTT</title>
+    <link rel="stylesheet" href="style1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <h1>🏓 Club FSTT</h1>
+                <span class="subtitle">Détails de l'activité</span>
+            </div>
+            <div class="nav-links">
+                <div class="user-info">
+                    <a href="profile.html" id="profile-link" class="profile-link" style="display:none; margin-right: 15px;">
+                        <i class="fas fa-user-circle"></i> Mon profil
+                    </a>
+                    <span id="user-role">Non connecté</span>
+                    <button id="login-btn" class="btn btn-small" onclick="window.location.href='login.html'">Se connecter</button>
+                    <button id="logout-btn" class="btn btn-small btn-danger" style="display:none; margin-left:10px;">
+                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div id="message-container" class="message-container"></div>
+        
+        <div id="details-container">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i> Chargement des détails...
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>© 2024 Club FSTT</p>
+            <p>Développé avec ❤️ par l'équipe Scrum</p>
+        </div>
+    </footer>
+
+    <!-- Scripts dans le bon ordre -->
+    <script src="auth.js"></script>
+    <script src="details.js"></script>
+</body>
+</html>

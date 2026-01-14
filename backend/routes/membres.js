@@ -40,7 +40,11 @@ router.post('/register', async (req, res) => {
   }
 
   try {
-    const [existing] = await db.promise().query('SELECT id FROM membres WHERE email = ?', [email]);
+    // db.query renvoie directement le tableau des rows
+    const existing = await db.query('SELECT id FROM membres WHERE email = ?', [email]);
+
+    console.log('Utilisateurs existants trouvés :', existing.length);
+
     if (existing.length > 0) {
       return res.status(409).json({ success: false, message: 'Email déjà utilisé' });
     }
@@ -48,7 +52,7 @@ router.post('/register', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const motDePasse = await bcrypt.hash(password, salt);
 
-    const [result] = await db.promise().query(
+    const result = await db.query(
       'INSERT INTO membres (nom, prenom, email, telephone, filiere, anneeEtude, motDePasse, role) VALUES (?, ?, ?, ?, ?, ?, ?, "MEMBRE")',
       [nom, prenom, email, telephone || null, filiere || null, anneeEtude || null, motDePasse]
     );
@@ -59,7 +63,8 @@ router.post('/register', async (req, res) => {
       userId: result.insertId
     });
   } catch (err) {
-    console.error('Erreur inscription:', err);
+    console.error('Erreur inscription complète :', err.message);
+    console.error('Stack :', err.stack);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 });
@@ -73,10 +78,13 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    const [users] = await db.promise().query(
+    // db.query renvoie directement le tableau des rows
+    const users = await db.query(
       'SELECT * FROM membres WHERE email = ? AND estActif = 1',
       [email]
     );
+
+    console.log('Users trouvés pour login :', users.length);
 
     if (users.length === 0) {
       return res.status(401).json({ success: false, message: 'Compte non trouvé ou inactif' });
@@ -84,6 +92,7 @@ router.post('/login', async (req, res) => {
 
     const user = users[0];
     const passwordMatch = await bcrypt.compare(password, user.motDePasse);
+
     if (!passwordMatch) {
       return res.status(401).json({ success: false, message: 'Mot de passe incorrect' });
     }
@@ -114,7 +123,8 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('Erreur login:', err);
+    console.error('Erreur login complète :', err.message);
+    console.error('Stack :', err.stack);
     res.status(500).json({ success: false, message: 'Erreur serveur' });
   }
 });
@@ -122,7 +132,7 @@ router.post('/login', async (req, res) => {
 // GET /api/membres/profile - Profil de l'utilisateur connecté (tous rôles)
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
-    const [users] = await db.promise().query(
+    const users = await db.query(
       'SELECT id, nom, prenom, email, telephone, filiere, anneeEtude, role, poste FROM membres WHERE id = ?',
       [req.user.id]
     );
@@ -143,7 +153,7 @@ router.put('/profile', authenticateToken, async (req, res) => {
   const { nom, prenom, telephone, filiere, anneeEtude } = req.body;
 
   try {
-    await db.promise().query(
+    await db.query(
       'UPDATE membres SET nom = IFNULL(?, nom), prenom = IFNULL(?, prenom), telephone = IFNULL(?, telephone), filiere = IFNULL(?, filiere), anneeEtude = IFNULL(?, anneeEtude) WHERE id = ?',
       [nom, prenom, telephone, filiere, anneeEtude, req.user.id]
     );
@@ -158,7 +168,7 @@ router.put('/profile', authenticateToken, async (req, res) => {
 // GET /api/membres - Liste complète des membres (ADMIN seulement)
 router.get('/', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const [membres] = await db.promise().query(
+    const membres = await db.query(
       'SELECT id, nom, prenom, email, telephone, filiere, anneeEtude, role, poste, estActif, createdAt FROM membres ORDER BY nom, prenom'
     );
 
@@ -179,7 +189,7 @@ router.put('/:id/role', authenticateToken, requireAdmin, async (req, res) => {
   }
 
   try {
-    await db.promise().query(
+    await db.query(
       'UPDATE membres SET role = ?, poste = ? WHERE id = ?',
       [role, poste || null, id]
     );
@@ -191,7 +201,7 @@ router.put('/:id/role', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-// PUT /api/membres/:id - Modifier les données d'un membre (ADMIN seulement) - Mises à jour partielles autorisées
+// PUT /api/membres/:id - Modifier les données d'un membre (ADMIN seulement)
 router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
   const { id } = req.params;
   const { nom, prenom, email, telephone, filiere, anneeEtude, role, poste, estActif } = req.body;
@@ -201,7 +211,7 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
   }
 
   try {
-    await db.promise().query(
+    await db.query(
       'UPDATE membres SET nom = IFNULL(?, nom), prenom = IFNULL(?, prenom), email = IFNULL(?, email), telephone = IFNULL(?, telephone), filiere = IFNULL(?, filiere), anneeEtude = IFNULL(?, anneeEtude), role = IFNULL(?, role), poste = IFNULL(?, poste), estActif = IFNULL(?, estActif) WHERE id = ?',
       [nom, prenom, email, telephone, filiere, anneeEtude, role, poste, estActif !== undefined ? (estActif ? 1 : 0) : null, id]
     );
@@ -213,6 +223,8 @@ router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
   }
 });
 
-
-
-module.exports = router;
+module.exports = {
+  authenticateToken,
+  requireAdmin,
+  router
+};

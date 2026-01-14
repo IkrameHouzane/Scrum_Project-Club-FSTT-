@@ -1,4 +1,26 @@
-// Fonction pour afficher les messages (succès ou erreur)
+// ================================================
+// FICHIER : script.js - VERSION COMPLÈTE
+// Authentification + Gestion Activités
+// ================================================
+
+console.log('🚀 === DEBUT CHARGEMENT script.js ===');
+
+// Vérifier que auth.js est bien chargé
+if (!window.API_BASE_URL_MEMBRES || !window.API_BASE_URL_ACTIVITES) {
+  console.error('❌ ERREUR: auth.js doit être chargé AVANT script.js !');
+}
+
+console.log('📡 API Membres:', window.API_BASE_URL_MEMBRES);
+console.log('📡 API Activités:', window.API_BASE_URL_ACTIVITES);
+
+
+let currentActivities = [];
+let currentCategories = [];
+
+// ================================================
+// FONCTIONS UTILITAIRES
+// ================================================
+
 function showMessage(elementId, text, isError = false) {
   const el = document.getElementById(elementId);
   if (el) {
@@ -7,11 +29,26 @@ function showMessage(elementId, text, isError = false) {
   }
 }
 
-// ---------------------
-// INSCRIPTION
-// ---------------------
+function showNotification(message, isError = false) {
+  const container = document.getElementById('message-container');
+  if (!container) return;
+  
+  container.textContent = message;
+  container.className = `message ${isError ? 'error' : 'success'}`;
+  container.style.display = 'block';
+  
+  setTimeout(() => {
+    container.style.display = 'none';
+  }, 5000);
+}
+
+// ================================================
+// AUTHENTIFICATION - INSCRIPTION
+// ================================================
 const registerForm = document.getElementById('registerForm');
 if (registerForm) {
+  console.log('📝 Formulaire inscription détecté');
+  
   registerForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -26,7 +63,7 @@ if (registerForm) {
     };
 
     try {
-      const response = await fetch('http://localhost:5000/api/membres/register', {
+      const response = await fetch(`${API_BASE_URL_MEMBRES}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -41,16 +78,19 @@ if (registerForm) {
         showMessage('message', result.message || 'Erreur inscription', true);
       }
     } catch (err) {
+      console.error('Erreur:', err);
       showMessage('message', 'Erreur serveur', true);
     }
   });
 }
 
-// ---------------------
-// CONNEXION - Redirection intelligente selon rôle
-// ---------------------
+// ================================================
+// AUTHENTIFICATION - CONNEXION
+// ================================================
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
+  console.log('🔑 Formulaire connexion détecté');
+  
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -59,39 +99,47 @@ if (loginForm) {
       password: document.getElementById('password')?.value
     };
 
+    console.log('📤 Tentative de connexion pour:', data.email);
+
     try {
-      const response = await fetch('http://localhost:5000/api/membres/login', {
+      const response = await fetch(`${API_BASE_URL_MEMBRES}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       });
 
       const result = await response.json();
+      console.log('📥 Réponse:', result);
 
       if (response.ok) {
         showMessage('message', result.message || 'Connexion réussie !', false);
         localStorage.setItem('token', result.token);
         localStorage.setItem('user', JSON.stringify(result.user));
 
-        // REDIRECTION INTELLIGENTE SELON LE RÔLE
-        const role = result.user.role;
-        // Par défaut : non-admin → dashboard
-        let redirectUrl = 'dashboard.html';
+        console.log('✅ Token et user sauvegardés');
 
+        // Redirection selon rôle
+        const role = result.user.role;
+        let redirectUrl = 'activite_page.html';
+        
         if (role === 'ADMIN') {
-          redirectUrl = 'membres.html'; // Admin → liste des membres
+          redirectUrl = 'dashboard_admin.html';
+        } else if (role === 'MEMBRE_BUREAU') {
+          redirectUrl = 'dashboard.html';
         }
 
+        console.log('🔄 Redirection vers:', redirectUrl);
         setTimeout(() => window.location.href = redirectUrl, 1500);
       } else {
         showMessage('message', result.message || 'Erreur de connexion', true);
       }
     } catch (err) {
-      showMessage('message', 'Erreur serveur', true);
+      console.error('❌ Erreur:', err);
+      showMessage('message', 'Erreur serveur - Vérifiez que le backend est démarré', true);
     }
   });
 
-  // Toggle password visibility (login form)
+  // Toggle visibilité mot de passe
   document.querySelectorAll('.toggle-password').forEach(btn => {
     btn.addEventListener('click', () => {
       const formGroup = btn.closest('.form-group');
@@ -101,513 +149,1148 @@ if (loginForm) {
       const icon = btn.querySelector('i');
       if (input.type === 'password') {
         input.type = 'text';
-        if (icon) { icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+        icon?.classList.replace('fa-eye', 'fa-eye-slash');
       } else {
         input.type = 'password';
-        if (icon) { icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+        icon?.classList.replace('fa-eye-slash', 'fa-eye');
       }
     });
   });
 }
 
-// ---------------------
-// PAGE PROFIL (tous rôles)
-// ---------------------
-if (window.location.pathname.includes('profile.html')) {
-  (function() {
+// ================================================
+// PROFIL UTILISATEUR
+// ================================================
+// ================================================
+// PROFIL UTILISATEUR
+// ================================================
+const isProfilePage = window.location.pathname.includes('profile.html') || 
+                      document.getElementById('profileInfo');
+
+if (isProfilePage) {
+  console.log('📄 Page profil détectée');
+  
+  document.addEventListener('DOMContentLoaded', async () => {
+    console.log('👤 Initialisation du profil...');
+
     const token = localStorage.getItem('token');
     if (!token) {
+      console.error('❌ Pas de token');
       window.location.href = 'login.html';
+      return;
     }
 
-    fetch('http://localhost:5000/api/membres/profile', {
-      method: 'GET',
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-    .then(res => {
-      if (!res.ok) throw new Error('Erreur chargement profil');
-      return res.json();
-    })
-    .then(data => {
-      if (data.success) {
-        const p = data.profile;
-        document.getElementById('nom').textContent = p.nom || '-';
-        document.getElementById('prenom').textContent = p.prenom || '-';
-        document.getElementById('email').textContent = p.email || '-';
-        document.getElementById('telephone').textContent = p.telephone || '-';
-        document.getElementById('filiere').textContent = p.filiere || '-';
-        document.getElementById('anneeEtude').textContent = p.anneeEtude || '-';
-        document.getElementById('role').textContent = p.role;
+    console.log('🔑 Token trouvé');
 
-        document.getElementById('editNom').value = p.nom || '';
-        document.getElementById('editPrenom').value = p.prenom || '';
-        document.getElementById('editTelephone').value = p.telephone || '';
-        document.getElementById('editFiliere').value = p.filiere || '';
-        document.getElementById('editAnneeEtude').value = p.anneeEtude || '';
-      } else {
-        showMessage('message', data.message || 'Erreur profil', true);
-      }
-    })
-    .catch(err => showMessage('message', 'Erreur : ' + err.message, true));
+    // Mettre à jour l'interface utilisateur (boutons nav)
+    updateUserInterface();
 
-    // Modification profil
-    document.getElementById('editProfileForm')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const data = {
-        nom: document.getElementById('editNom').value.trim() || null,
-        prenom: document.getElementById('editPrenom').value.trim() || null,
-        telephone: document.getElementById('editTelephone').value.trim() || null,
-        filiere: document.getElementById('editFiliere').value.trim() || null,
-        anneeEtude: document.getElementById('editAnneeEtude').value || null
-      };
-
-      const token = localStorage.getItem('token');
-
-      fetch('http://localhost:5000/api/membres/profile', {
-        method: 'PUT',
+    try {
+      const url = `${window.API_BASE_URL_MEMBRES}/profile`;
+      console.log('📡 Appel API:', url);
+      
+      const response = await fetch(url, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      })
-      .then(res => res.json())
-      .then(result => {
-        if (result.success) {
-          showMessage('message', result.message, false);
-          setTimeout(() => location.reload(), 1500);
-        } else {
-          showMessage('message', result.message, true);
         }
-      })
-      .catch(() => showMessage('message', 'Erreur serveur', true));
-    });
-  })();
-}
+      });
 
-// ---------------------
-// PAGE MEMBRES (ADMIN seulement)
-// ---------------------
-if (window.location.pathname.includes('membres.html')) {
-  (function() {
+      console.log('📥 Statut HTTP:', response.status);
+
+      if (response.status === 401) {
+        console.error('❌ Token invalide - Redirection');
+        localStorage.clear();
+        window.location.href = 'login.html';
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('📦 Données reçues:', data);
+
+      if (!data.success) {
+        throw new Error(data.message || 'Erreur lors du chargement du profil');
+      }
+
+      const p = data.profile;
+      console.log('👤 Profil utilisateur:', p);
+
+      // ============================================
+      // REMPLIR LES INFORMATIONS D'AFFICHAGE
+      // ============================================
+      const displayFields = {
+        'nom': p.nom,
+        'prenom': p.prenom,
+        'email': p.email,
+        'telephone': p.telephone,
+        'filiere': p.filiere,
+        'anneeEtude': p.anneeEtude,
+        'role': p.role
+      };
+
+      console.log('📝 Remplissage des champs d\'affichage...');
+      Object.entries(displayFields).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.textContent = value || '-';
+          console.log(`  ✅ #${id} = "${value}"`);
+        } else {
+          console.error(`  ❌ Élément #${id} non trouvé dans le DOM`);
+        }
+      });
+
+      // ============================================
+      // REMPLIR LE FORMULAIRE D'ÉDITION
+      // ============================================
+      const editFields = {
+        'editNom': p.nom,
+        'editPrenom': p.prenom,
+        'editTelephone': p.telephone,
+        'editFiliere': p.filiere,
+        'editAnneeEtude': p.anneeEtude
+      };
+
+      console.log('✏️ Remplissage du formulaire d\'édition...');
+      Object.entries(editFields).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.value = value || '';
+          console.log(`  ✅ #${id} = "${value}"`);
+        } else {
+          console.error(`  ❌ Élément #${id} non trouvé dans le DOM`);
+        }
+      });
+
+      console.log('✅ Profil chargé avec succès !');
+
+    } catch (error) {
+      console.error('❌ Erreur chargement profil:', error);
+      showMessage('message', `Erreur: ${error.message}`, true);
+    }
+  });
+
+  // ============================================
+  // GESTION DE LA MODIFICATION DU PROFIL
+  // ============================================
+  document.addEventListener('DOMContentLoaded', () => {
+    const editProfileForm = document.getElementById('editProfileForm');
+    if (editProfileForm) {
+      console.log('📝 Formulaire d\'édition détecté');
+      
+      editProfileForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        console.log('📝 Soumission du formulaire de modification');
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+          window.location.href = 'login.html';
+          return;
+        }
+
+        const data = {
+          nom: document.getElementById('editNom')?.value.trim(),
+          prenom: document.getElementById('editPrenom')?.value.trim(),
+          telephone: document.getElementById('editTelephone')?.value.trim(),
+          filiere: document.getElementById('editFiliere')?.value.trim(),
+          anneeEtude: document.getElementById('editAnneeEtude')?.value
+        };
+
+        console.log('📤 Données à envoyer:', data);
+
+        try {
+          const response = await fetch(`${window.API_BASE_URL_MEMBRES}/profile`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+
+          const result = await response.json();
+          console.log('📥 Réponse:', result);
+
+          if (response.ok && result.success) {
+            showMessage('message', result.message || 'Profil mis à jour avec succès !', false);
+            
+            // Mettre à jour le localStorage
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            user.nom = data.nom;
+            user.prenom = data.prenom;
+            localStorage.setItem('user', JSON.stringify(user));
+            
+            // Recharger la page après 1.5s
+            setTimeout(() => window.location.reload(), 1500);
+          } else {
+            showMessage('message', result.message || 'Erreur lors de la mise à jour', true);
+          }
+        } catch (error) {
+          console.error('❌ Erreur:', error);
+          showMessage('message', 'Erreur serveur lors de la mise à jour', true);
+        }
+      });
+    }
+  });
+}
+// ================================================
+// GESTION DES ACTIVITÉS
+// ================================================
+
+async function loadCategoriesUnified() {
+  console.log('🔄 Chargement des catégories...');
+  
+  try {
     const token = localStorage.getItem('token');
     if (!token) {
+      console.warn('⚠️ Pas de token disponible');
+      return [];
+    }
+    
+    const response = await fetch(`${window.API_BASE_URL_ACTIVITES}/categories`, {
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    if (data.success && data.data && Array.isArray(data.data)) {
+      console.log(`✅ ${data.data.length} catégories chargées`);
+      return data.data;
+    } else {
+      console.warn('⚠️ Format de réponse inattendu');
+      return [];
+    }
+  } catch (error) {
+    console.error('❌ Erreur chargement catégories:', error);
+    return [];
+  }
+}
+
+async function populateCategorySelect(selectId, includeDefault = true) {
+  console.log(`🔄 Remplissage du select: ${selectId}`);
+  
+  const select = document.getElementById(selectId);
+  if (!select) {
+    console.error(`❌ Select ${selectId} non trouvé!`);
+    return;
+  }
+  
+  try {
+    const categories = await loadCategoriesUnified();
+    
+    while (select.options.length > (includeDefault ? 1 : 0)) {
+      select.remove(select.options.length - 1);
+    }
+    
+    categories.forEach(category => {
+      const option = document.createElement('option');
+      option.value = category.id;
+      option.textContent = category.nom;
+      select.appendChild(option);
+    });
+    
+    console.log(`✅ Select ${selectId} rempli avec ${categories.length} catégories`);
+    
+  } catch (error) {
+    console.error(`❌ Erreur remplissage select ${selectId}:`, error);
+  }
+}
+
+function updateUserInterface() {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const userRoleEl = document.getElementById('user-role');
+  const loginBtn = document.getElementById('login-btn');
+  const logoutBtn = document.getElementById('logout-btn');
+  const createLink = document.getElementById('create-link');
+  const profileLink = document.getElementById('profile-link'); // Ajouté
+  
+  if (user && user.id) {
+    if (userRoleEl) {
+      userRoleEl.textContent = `${user.prenom || user.nom} (${user.role})`;
+    }
+    if (loginBtn) loginBtn.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.display = 'inline-block';
+    
+    // Afficher le lien profil si l'utilisateur est connecté
+    if (profileLink) {
+      profileLink.style.display = 'inline-block';
+    }
+    
+    if (createLink) {
+      const canCreate = user.role === 'ADMIN' || user.role === 'MEMBRE_BUREAU';
+      createLink.style.display = canCreate ? 'inline-block' : 'none';
+    }
+    
+    if (logoutBtn) {
+      logoutBtn.onclick = function() {
+        localStorage.clear();
+        window.location.href = 'login.html';
+      };
+    }
+  } else {
+    if (userRoleEl) userRoleEl.textContent = 'Non connecté';
+    if (loginBtn) loginBtn.style.display = 'inline-block';
+    if (logoutBtn) logoutBtn.style.display = 'none';
+    if (createLink) createLink.style.display = 'none';
+    if (profileLink) profileLink.style.display = 'none'; // Cacher le lien profil
+  }
+}
+
+async function loadActivities() {
+  console.log('🔄 === loadActivities() appelée ===');
+
+  const container = document.getElementById('activities-container');
+  if (!container) {
+    console.error('❌ activities-container non trouvé!');
+    return;
+  }
+
+  const token = localStorage.getItem('token');
+  if (!token) {
+    container.innerHTML = `
+      <div class="error-state">
+        <h3>Non connecté</h3>
+        <p>Veuillez vous connecter pour voir les activités.</p>
+        <button onclick="window.location.href='login.html'" class="btn btn-primary">
+          Se connecter
+        </button>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Chargement des activités...</div>';
+
+  try {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    
+    const search = document.getElementById('search-input')?.value || '';
+    const categoryId = document.getElementById('category-filter')?.value || '';
+    const statusFilter = document.getElementById('status-filter')?.value || '';
+
+    let url = API_BASE_URL_ACTIVITES;
+    const isGestionPage = window.location.pathname.includes('gestion_activite.html');
+
+    console.log('📌 Page gestion:', isGestionPage);
+    console.log('👤 Utilisateur ID:', user.id);
+
+    const params = new URLSearchParams();
+
+    if (search) params.append('search', search);
+    if (categoryId) params.append('categorie_id', categoryId);
+    if (statusFilter) params.append('statut', statusFilter);
+
+    if (isGestionPage && user.id) {
+      params.append('organisateur_id', user.id);
+    }
+
+    if (params.toString()) {
+      url += `?${params.toString()}`;
+    }
+
+    console.log('📡 URL finale:', url);
+
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log('📥 Status:', response.status);
+
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('📦 Données:', data);
+
+    if (data.success && Array.isArray(data.data)) {
+      currentActivities = data.data;
+      console.log(`✅ ${data.data.length} activités chargées`);
+      
+      displayActivities(data.data);
+
+      if (data.data.length === 0) {
+        const emptyMessage = isGestionPage
+          ? 'Vous n\'avez créé aucune activité pour le moment.'
+          : 'Il n\'y a pas d\'activités disponibles pour le moment.';
+
+        container.innerHTML = `
+          <div class="empty-state">
+            <i class="fas fa-calendar-times"></i>
+            <h3>Aucune activité trouvée</h3>
+            <p>${emptyMessage}</p>
+            ${isGestionPage ? '<a href="create.html" class="btn btn-primary"><i class="fas fa-plus"></i> Créer votre première activité</a>' : ''}
+          </div>
+        `;
+      }
+    } else {
+      console.error('❌ Format de réponse inattendu:', data);
+      throw new Error('Format de réponse inattendu');
+    }
+
+  } catch (error) {
+    console.error('❌ Erreur:', error);
+    container.innerHTML = `
+      <div class="error-state">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h3>Erreur de chargement</h3>
+        <p>${error.message}</p>
+        <button onclick="loadActivities()" class="btn btn-secondary">
+          <i class="fas fa-redo"></i> Réessayer
+        </button>
+      </div>
+    `;
+  }
+}
+
+function displayActivities(activities) {
+  const container = document.getElementById('activities-container');
+  if (!container) return;
+  
+  console.log('🎨 Affichage de', activities.length, 'activités');
+  
+  container.innerHTML = '';
+  
+  if (activities.length === 0) {
+    return;
+  }
+  
+  activities.forEach(activity => {
+    const activityCard = createActivityCard(activity);
+    container.appendChild(activityCard);
+  });
+}
+
+function createActivityCard(activity) {
+  const card = document.createElement('div');
+  card.className = 'activity-card';
+  
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  
+  const dateDebut = new Date(activity.dateDebut).toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+  
+  const dateFin = activity.dateFin 
+    ? new Date(activity.dateFin).toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+    : '';
+  
+  let statusBadge = '';
+  if (activity.statut === 'Annulee') {
+    statusBadge = '<span class="badge badge-annulee">ANNULÉE</span>';
+  } else if (activity.placesRestantes === 0) {
+    statusBadge = '<span class="badge badge-complet">COMPLET</span>';
+  } else if (activity.statut === 'Planifiee') {
+    statusBadge = '<span class="badge badge-planifiee">PLANIFIÉE</span>';
+  } else {
+    statusBadge = '<span class="badge badge-disponible">DISPONIBLE</span>';
+  }
+  
+  const canManage = user.role === 'ADMIN' || user.role === 'MEMBRE_BUREAU';
+  const canCancel = (user.role === 'ADMIN' || user.role === 'MEMBRE_BUREAU') || 
+                    (user.id === activity.organisateur_id);
+  
+  // RÉPARATION : Ne pas essayer de deviner le nombre de participants
+  // On ne connaît pas encore le vrai nombre ici, donc on passe null
+  // Le vrai nombre sera récupéré dans showCancelModal()
+  
+  card.innerHTML = `
+    <div class="activity-header">
+      <div class="activity-title">
+        <h3>${activity.titre || 'Sans titre'}</h3>
+        ${statusBadge}
+      </div>
+      <div class="category-badge">
+        <i class="fas fa-tag"></i> ${activity.categorie_nom || 'Non catégorisé'}
+      </div>
+    </div>
+    
+    <div class="activity-info">
+      <div class="info-row">
+        <i class="far fa-calendar-alt"></i>
+        <strong>Date :</strong> ${dateDebut}
+        ${dateFin ? ` - ${dateFin}` : ''}
+      </div>
+      
+      <div class="info-row">
+        <i class="fas fa-map-marker-alt"></i>
+        <strong>Lieu :</strong> ${activity.lieu || 'Non spécifié'}
+      </div>
+      
+      ${activity.description ? `
+        <div class="info-row">
+          <i class="fas fa-info-circle"></i>
+          <span>${activity.description.substring(0, 100)}${activity.description.length > 100 ? '...' : ''}</span>
+        </div>
+      ` : ''}
+      
+      ${activity.organisateur_nom ? `
+        <div class="organisateur">
+          <i class="fas fa-user-tie"></i>
+          <strong>Organisateur :</strong> ${activity.organisateur_nom}
+          ${activity.organisateur_poste ? ` (${activity.organisateur_poste})` : ''}
+        </div>
+      ` : ''}
+    </div>
+    
+    <div class="activity-footer">
+      <div class="places-info">
+        <i class="fas fa-users"></i>
+        Places : 
+        <span class="places-count">${activity.placesRestantes || 0}</span> / ${activity.placesMax || 0}
+      </div>
+      
+      <div class="action-buttons">
+        ${activity.statut !== 'Annulee' && (activity.placesRestantes || 0) > 0 ? `
+          <a href="inscrire.html?id=${activity.id}" class="btn btn-small btn-success">
+            <i class="fas fa-user-plus"></i> S'inscrire
+          </a>
+        ` : ''}
+
+        <a href="details?id=${activity.id}" class="btn btn-small btn-secondary">
+          <i class="fas fa-eye"></i> Détails
+        </a>
+
+        ${canManage && activity.organisateur_id === user.id ? `
+          <a href="edit.html?id=${activity.id}" class="btn btn-small btn-primary">
+            <i class="fas fa-edit"></i> Modifier
+          </a>
+        ` : ''}
+
+    ${canCancel && activity.statut !== 'Annulee' ? `
+      <button onclick="showCancelModal(${activity.id}, '${activity.titre?.replace(/'/g, "\\'") || ''}')"
+              class="btn btn-small btn-danger">
+        <i class="fas fa-ban"></i> Annuler
+      </button>
+    ` : ''}
+      </div>
+    </div>
+  `;
+  
+  return card;
+}
+
+function setupEventListeners() {
+  console.log('⚙️ Configuration des événements...');
+  
+  const searchInput = document.getElementById('search-input');
+  if (searchInput) {
+    let searchTimeout;
+    searchInput.addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        console.log('🔍 Recherche:', this.value);
+        loadActivities();
+      }, 500);
+    });
+  }
+  
+  const categoryFilter = document.getElementById('category-filter');
+  if (categoryFilter) {
+    categoryFilter.addEventListener('change', () => {
+      console.log('🏷️ Filtre catégorie:', categoryFilter.value);
+      loadActivities();
+    });
+  }
+
+  const statusFilter = document.getElementById('status-filter');
+  if (statusFilter) {
+    statusFilter.addEventListener('change', () => {
+      console.log('📊 Filtre statut:', statusFilter.value);
+      loadActivities();
+    });
+  }
+  
+  const refreshBtn = document.getElementById('refresh-btn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      console.log('🔄 Actualisation');
+      loadActivities();
+    });
+  }
+  
+  const modal = document.getElementById('cancel-modal');
+  if (modal) {
+    const closeBtns = modal.querySelectorAll('.close-modal');
+    closeBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    });
+    
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+  }
+}
+
+// Ouvre le modal avec le vrai nombre de participants (récupéré via API)
+async function showCancelModal(activityId, activityTitle) {
+  console.log('🚫 Ouverture modal annulation - ID:', activityId);
+
+  const modal = document.getElementById('cancel-modal');
+  const message = document.getElementById('cancel-message');
+  const countSpan = document.getElementById('participants-count');
+  const confirmBtn = document.getElementById('cancel-confirm-btn');
+
+  if (!modal || !message || !countSpan || !confirmBtn) {
+    console.error('❌ Modal ou éléments manquants');
+    return;
+  }
+
+  confirmBtn.disabled = true;
+  confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chargement...';
+
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) throw new Error('Pas de token');
+
+    // Appel API GET pour récupérer l'activité avec participantsCount
+    const response = await fetch(`${API_BASE_URL_ACTIVITES}/${activityId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    console.log('GET /activites/' + activityId + ' → Statut:', response.status);
+
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
+    console.log('Réponse complète GET:', result);  // ← Debug important !
+
+    if (!result.success || !result.data) {
+      throw new Error('Activité non trouvée');
+    }
+
+    const activite = result.data;
+
+    // Le champ ajouté dans le backend doit apparaître ici !
+    const participantsCount = Number(activite.participantsCount) || 0;
+
+    console.log('Nombre réel récupéré :', participantsCount);
+
+    // Affichage avec le VRAI nombre
+    message.innerHTML = `
+      Êtes-vous sûr de vouloir annuler l'activité <strong>"${activityTitle}"</strong> ?<br><br>
+      <span style="color:#d32f2f; font-weight:bold;">Cette action est irréversible !</span><br><br>
+      ${participantsCount > 0 
+        ? `Un email sera envoyé à <strong>${participantsCount} participant(s) inscrit(s)</strong>.` 
+        : `Aucun participant inscrit pour le moment.`}
+    `;
+
+    countSpan.textContent = participantsCount;
+
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = '<i class="fas fa-ban"></i> Oui, annuler l\'activité';
+
+    confirmBtn.onclick = async () => {
+      await cancelActivity(activityId);
+    };
+
+    modal.style.display = 'flex';
+
+  } catch (error) {
+    console.error('Erreur chargement détails:', error);
+    message.innerHTML = `Erreur : ${error.message}<br>Réessayez.`;
+    countSpan.textContent = '?';
+    confirmBtn.disabled = false;
+    confirmBtn.innerHTML = '<i class="fas fa-ban"></i> Réessayer';
+    modal.style.display = 'flex';
+  }
+}
+
+// Annulation avec feedback détaillé
+async function cancelActivity(activityId, knownParticipantsCount = 0) {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    showNotification('Session expirée. Veuillez vous reconnecter.', true);
+    return;
+  }
+
+  const modal = document.getElementById('cancel-modal');
+  const confirmBtn = document.getElementById('cancel-confirm-btn');
+
+  confirmBtn.disabled = true;
+  confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Annulation...';
+
+  try {
+    const response = await fetch(`${API_BASE_URL_ACTIVITES}/${activityId}/cancel`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ confirm: true })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || `Erreur ${response.status}`);
+    }
+
+    // Succès !
+    let successMsg = 'Activité annulée avec succès !';
+
+    if (data.participantsCount !== undefined) {
+      successMsg += `\n${data.emailsEnvoyes || 0} email(s) envoyé(s) sur ${data.participantsCount} participant(s).`;
+    } else if (knownParticipantsCount > 0) {
+      successMsg += `\nNotification envoyée à ${knownParticipantsCount} participant(s).`;
+    }
+
+    showNotification(successMsg, false);
+
+    // Fermeture modal + refresh liste
+    if (modal) modal.style.display = 'none';
+    setTimeout(() => loadActivities(), 800);
+
+  } catch (error) {
+    console.error('❌ Échec annulation:', error);
+    let errMsg = error.message;
+
+    if (errMsg.includes('permission')) {
+      errMsg = "Vous n'avez pas le droit d'annuler cette activité.";
+    } else if (errMsg.includes('non trouvée')) {
+      errMsg = "L'activité n'existe plus ou a déjà été supprimée.";
+    }
+
+    showNotification(`Échec : ${errMsg}`, true);
+  } finally {
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = '<i class="fas fa-ban"></i> Oui, annuler l\'activité';
+    }
+  }
+}
+
+async function cancelActivity(activityId) {
+  try {
+    console.log('🚫 Annulation activité ID:', activityId);
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+      showNotification('Veuillez vous reconnecter', true);
+      return;
+    }
+    
+    const modal = document.getElementById('cancel-modal');
+    const confirmBtn = document.getElementById('cancel-confirm-btn');
+    
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Annulation et envoi d\'emails...';
+    }
+    
+    // ✅ URL CORRECTE avec /cancel
+    const response = await fetch(`${API_BASE_URL_ACTIVITES}/${activityId}/cancel`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        confirm: true,
+        sendEmails: true  // Indiquer qu'on veut envoyer des emails
+      })
+    });
+    
+    console.log('📥 Réponse HTTP:', response.status, response.statusText);
+    
+    const data = await response.json();
+    console.log('📦 Données réponse:', data);
+    
+    if (response.ok && data.success) {
+      // Message détaillé
+      let message = '✅ ' + (data.message || 'Activité annulée avec succès');
+      
+      if (data.participantsCount > 0) {
+        message += `\n📧 ${data.emailsEnvoyes || 0}/${data.participantsCount} email(s) envoyé(s) aux participants`;
+      } else {
+        message += '\n👤 Aucun participant à notifier';
+      }
+      
+      showNotification(message, false);
+      
+      // Afficher un message dans la console pour le débogage
+      if (data.participants && data.participants.length > 0) {
+        console.log('👥 Participants notifiés:', data.participants.map(p => ({
+          nom: p.nom,
+          prenom: p.prenom,
+          email: p.email
+        })));
+      }
+      
+      // Fermer la modal
+      if (modal) {
+        modal.style.display = 'none';
+      }
+      
+      // Recharger les activités après un délai
+      setTimeout(() => {
+        loadActivities();
+      }, 1000);
+      
+    } else {
+      // Gestion des erreurs spécifiques
+      if (response.status === 401) {
+        throw new Error('Session expirée. Veuillez vous reconnecter.');
+      } else if (response.status === 403) {
+        throw new Error('Vous n\'avez pas la permission d\'annuler cette activité.');
+      } else if (response.status === 404) {
+        throw new Error('Activité non trouvée.');
+      } else {
+        throw new Error(data.message || `Erreur ${response.status}: ${response.statusText}`);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Erreur annulation:', error);
+    
+    // Message d'erreur convivial
+    let errorMessage = error.message;
+    
+    if (error.message.includes('Failed to fetch') || error.message.includes('Network')) {
+      errorMessage = 'Erreur de connexion au serveur. Vérifiez votre internet et que le serveur est démarré.';
+    }
+    
+    showNotification(`❌ ${errorMessage}`, true);
+    
+    // Si session expirée, rediriger vers login
+    if (error.message.includes('Session expirée') || error.message.includes('401')) {
+      localStorage.clear();
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 2000);
+    }
+  } finally {
+    const confirmBtn = document.getElementById('cancel-confirm-btn');
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = '<i class="fas fa-ban"></i> Oui, annuler l\'activité';
+    }
+  }
+}
+
+// ================================================
+// INITIALISATION
+// ================================================
+
+const isActivitiesPage = window.location.pathname.includes('activite_page.html') || 
+                         window.location.pathname.includes('gestion_activite.html') ||
+                         document.getElementById('activities-container');
+
+if (isActivitiesPage) {
+  console.log('📋 Page activités détectée');
+  
+  document.addEventListener('DOMContentLoaded', async function() {
+    console.log('✅ DOM chargé');
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('❌ Non authentifié');
       window.location.href = 'login.html';
+      return;
+    }
+    
+    updateUserInterface();
+    
+    const categoryFilter = document.getElementById('category-filter');
+    if (categoryFilter) {
+      await populateCategorySelect('category-filter');
+    }
+    
+    await loadActivities();
+    setupEventListeners();
+    
+    console.log('✅ Initialisation terminée');
+  });
+}
+
+
+// ================================================
+// PAGE CRÉATION D'ACTIVITÉ
+// ================================================
+const isCreatePage = window.location.pathname.includes('create.html') || 
+                     document.getElementById('create-form');
+
+if (isCreatePage) {
+  console.log('➕ Page création d\'activité détectée');
+  
+  document.addEventListener('DOMContentLoaded', async () => {
+    console.log('✅ Initialisation page création');
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('❌ Non authentifié');
+      window.location.href = 'login.html';
+      return;
+    }
+    
+    // Vérifier les permissions
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.role || !['ADMIN', 'MEMBRE_BUREAU'].includes(user.role)) {
+      alert('Vous n\'avez pas les permissions pour créer une activité');
+      window.location.href = 'activite_page.html';
+      return;
+    }
+    
+    // Mettre à jour l'interface
+    updateUserInterface();
+    
+    // Charger les catégories dans le select
+    await populateCategorySelect('categorie_id', false);
+    
+    // Gérer la soumission du formulaire
+    const createForm = document.getElementById('create-form');
+    if (createForm) {
+      console.log('📝 Formulaire création détecté');
+      
+      createForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        console.log('📤 Soumission du formulaire de création');
+        
+        const formData = {
+          titre: document.getElementById('titre')?.value.trim(),
+          description: document.getElementById('description')?.value.trim() || null,
+          dateDebut: document.getElementById('dateDebut')?.value,
+          dateFin: document.getElementById('dateFin')?.value || null,
+          lieu: document.getElementById('lieu')?.value.trim(),
+          placesMax: parseInt(document.getElementById('placesMax')?.value) || 20,
+          categorie_id: document.getElementById('categorie_id')?.value || null
+        };
+        
+        console.log('📦 Données à envoyer:', formData);
+        
+        // Validation
+        if (!formData.titre) {
+          showNotification('Le titre est obligatoire', true);
+          return;
+        }
+        
+        if (!formData.dateDebut) {
+          showNotification('La date de début est obligatoire', true);
+          return;
+        }
+        
+        if (!formData.lieu) {
+          showNotification('Le lieu est obligatoire', true);
+          return;
+        }
+        
+        // Vérifier que la date de début est dans le futur
+        const dateDebut = new Date(formData.dateDebut);
+        const now = new Date();
+        if (dateDebut < now) {
+          showNotification('La date de début doit être dans le futur', true);
+          return;
+        }
+        
+        // Vérifier que la date de fin est après la date de début
+        if (formData.dateFin) {
+          const dateFin = new Date(formData.dateFin);
+          if (dateFin < dateDebut) {
+            showNotification('La date de fin doit être après la date de début', true);
+            return;
+          }
+        }
+        
+        try {
+          // Désactiver le bouton de soumission
+          const submitBtn = createForm.querySelector('button[type="submit"]');
+          if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Création en cours...';
+          }
+          
+          const response = await fetch(`${window.API_BASE_URL_ACTIVITES}`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+          });
+          
+          const result = await response.json();
+          console.log('📥 Réponse:', result);
+          
+          if (response.ok && result.success) {
+            showNotification('Activité créée avec succès !', false);
+            
+            // Rediriger vers la page de gestion après 1.5s
+            setTimeout(() => {
+              window.location.href = 'gestion_activite.html';
+            }, 1500);
+          } else {
+            showNotification(result.message || 'Erreur lors de la création', true);
+            
+            // Réactiver le bouton
+            if (submitBtn) {
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = '<i class="fas fa-check"></i> Créer l\'activité';
+            }
+          }
+        } catch (error) {
+          console.error('❌ Erreur:', error);
+          showNotification('Erreur serveur lors de la création', true);
+          
+          // Réactiver le bouton
+          const submitBtn = createForm.querySelector('button[type="submit"]');
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-check"></i> Créer l\'activité';
+          }
+        }
+      });
+    }
+    
+    console.log('✅ Page création initialisée');
+  });
+}
+// ================================================
+// PAGE ADMIN - LISTE DES MEMBRES (détection robuste)
+// ================================================
+
+// Détection fiable : on regarde si le tableau existe sur la page
+const isMembersPage = document.getElementById('membresTable') !== null;
+
+if (isMembersPage) {
+  console.log('👑 Détection réussie : page avec tableau des membres');
+
+  // Exécute immédiatement (pas besoin de DOMContentLoaded multiple)
+  (async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.log('❌ Pas de token → redirection login');
+      window.location.href = 'login.html';
+      return;
     }
 
     const user = JSON.parse(localStorage.getItem('user') || '{}');
     if (user.role !== 'ADMIN') {
-      window.location.href = 'profile.html';
-    }
-
-  fetch('http://localhost:5000/api/membres', {
-    method: 'GET',
-    headers: { 'Authorization': `Bearer ${token}` }
-  })
-  .then(res => {
-    if (!res.ok) throw new Error('Erreur chargement membres');
-    return res.json();
-  })
-  .then(data => {
-    if (data.success) {
-      const tbody = document.getElementById('membresBody');
-      tbody.innerHTML = '';
-      data.membres.forEach(m => {
-        const row = `<tr data-id="${m.id}" data-nom="${m.nom}" data-prenom="${m.prenom}" data-email="${m.email}" data-telephone="${m.telephone || ''}" data-filiere="${m.filiere || ''}" data-annee="${m.anneeEtude || ''}" data-role="${m.role}" data-poste="${m.poste || ''}" data-actif="${m.estActif}">
-          <td>${m.id}</td>
-          <td class="editable" title="Cliquer pour modifier">${m.nom} ${m.prenom}</td>
-          <td class="editable" title="Cliquer pour modifier">${m.email}</td>
-          <td class="editable" title="Cliquer pour modifier">${m.telephone || '-'}</td>
-          <td class="editable" title="Cliquer pour modifier">${m.filiere || '-'}</td>
-          <td class="editable" title="Cliquer pour modifier">${m.anneeEtude || '-'}</td>
-          <td class="editable" title="Cliquer pour modifier">${m.role}</td>
-          <td class="editable" title="Cliquer pour modifier">${m.poste || '-'}</td>
-          <td class="editable" title="Cliquer pour modifier">${m.estActif ? 'Oui' : 'Non'}</td>
-          <td>${new Date(m.createdAt).toLocaleDateString()}</td>
-          <td>
-            <button class="btn btn-secondary assign-role-btn" data-id="${m.id}">Assigner Rôle</button>
-          </td>
-        </tr>`;
-        tbody.innerHTML += row;
-      });
-    } else {
-      showMessage('message', data.message || 'Erreur chargement membres', true);
-    }
-  })
-  .catch(err => showMessage('message', 'Erreur : ' + err.message, true));
-
-  // Bouton export Excel (ajouté ici)
-  document.getElementById('exportExcelBtn')?.addEventListener('click', () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      showMessage('message', 'Veuillez vous reconnecter', true);
+      console.warn('⚠️ Non admin → redirection');
+      alert('Accès réservé aux administrateurs uniquement');
+      window.location.href = 'activite_page.html';
       return;
     }
 
-    // Téléchargement du fichier Excel avec authentification
-    fetch('http://localhost:5000/api/admin/membres/export', {
-      method: 'GET',
+    console.log('Admin validé → chargement membres...');
+    await loadMembersList();
+  })();
+
+  // Gestion du bouton export
+  document.getElementById('exportExcelBtn')?.addEventListener('click', () => {
+    console.log('Export Excel déclenché');
+    window.location.href = `${API_BASE_URL_MEMBRES}/membres/export`;
+  });
+}
+
+// Fonction de chargement (simplifiée)
+async function loadMembersList() {
+  const tbody = document.getElementById('membresBody');
+  if (!tbody) {
+    console.error('❌ #membresBody introuvable');
+    return;
+  }
+
+  tbody.innerHTML = '<tr><td colspan="11">Chargement en cours...</td></tr>';
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL_MEMBRES}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Erreur lors du téléchargement');
-      }
-      return response.blob();
-    })
-    .then(blob => {
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'Liste_Membres_Club_FSTT.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-    })
-    .catch(err => {
-      showMessage('message', 'Erreur : ' + err.message, true);
     });
-  });
 
-  // Gestion du modal pour assigner les rôles
-  let currentMemberId = null;
-  const modal = document.getElementById('roleModal');
-  const editModal = document.getElementById('editModal');
-  const closeBtn = document.querySelectorAll('.close');
-  const roleForm = document.getElementById('roleForm');
-  const editForm = document.getElementById('editForm');
+    console.log('GET /membres - Statut:', response.status);
 
-  // Gestion des événements : assigner rôle ou édition inline
-  let activeEditor = null;
-
-  document.addEventListener('click', (e) => {
-    const t = e.target;
-
-    // Assigner rôle
-    if (t.classList.contains('assign-role-btn')) {
-      currentMemberId = t.getAttribute('data-id');
-      modal.style.display = 'block';
-      document.getElementById('roleSelect').value = '';
-      document.getElementById('posteSelect').value = '';
-      return;
+    if (!response.ok) {
+      throw new Error(`Erreur ${response.status} - ${response.statusText}`);
     }
 
-    // Edition directe : cliquer sur une cellule éditable
-    const cell = t.closest('td.editable');
-    if (cell) {
-      const tr = cell.closest('tr');
-      if (!tr) return;
-      currentMemberId = tr.getAttribute('data-id');
+    const result = await response.json();
+    console.log('Réponse API complète :', result);
 
-      // If another cell is being edited, try to commit it first
-      if (activeEditor && activeEditor.cell === cell) return;
-      if (activeEditor) {
-        commitEditor(activeEditor).catch(() => {});
-      }
-
-      startInlineEdit(cell, tr);
-    }
-  });
-
-  // Start inline editing in a cell
-  function startInlineEdit(cell, tr) {
-    cell.classList.add('editing');
-    const col = cell.cellIndex;
-    const initialValue = cell.textContent.trim();
-    let input;
-
-    // Create appropriate input/select per column
-    if (col === 1) {
-      input = document.createElement('input');
-      input.type = 'text';
-      input.value = initialValue;
-      input.className = 'inline-input';
-    } else if (col === 2) {
-      input = document.createElement('input');
-      input.type = 'email';
-      input.value = initialValue;
-      input.className = 'inline-input';
-    } else if ([3,4,5].includes(col)) {
-      input = document.createElement('input');
-      input.type = 'text';
-      input.value = (initialValue === '-' ? '' : initialValue);
-      input.className = 'inline-input';
-    } else if (col === 6) { // role
-      input = document.createElement('select');
-      input.className = 'inline-select';
-      ['MEMBRE','MEMBRE_BUREAU','ADMIN'].forEach(v => {
-        const o = document.createElement('option'); o.value = v; o.textContent = v; input.appendChild(o);
-      });
-      input.value = tr.dataset.role || initialValue;
-    } else if (col === 7) { // poste
-      input = document.createElement('select');
-      input.className = 'inline-select';
-      ['','Vice-Président','Trésorier','Chef de cellule ','RH'].forEach(v => {
-        const o = document.createElement('option'); o.value = v; o.textContent = v || 'Aucun poste'; input.appendChild(o);
-      });
-      input.value = tr.dataset.poste || (initialValue === '-' ? '' : initialValue);
-    } else if (col === 8) { // estActif
-      input = document.createElement('select');
-      input.className = 'inline-select';
-      const yes = document.createElement('option'); yes.value = '1'; yes.textContent = 'Oui';
-      const no = document.createElement('option'); no.value = '0'; no.textContent = 'Non';
-      input.appendChild(yes); input.appendChild(no);
-      input.value = (tr.dataset.actif === 'true' || tr.dataset.actif === '1') ? '1' : '0';
-    } else {
-      // non-editable column (ID, date, actions)
-      cell.classList.remove('editing');
-      return;
+    if (!result.success) {
+      throw new Error(result.message || 'Erreur serveur');
     }
 
-    cell.innerHTML = '';
-    cell.appendChild(input);
-    input.focus();
-    if (input.select) input.select();
+    tbody.innerHTML = '';
 
-    const onKey = (ev) => {
-      if (ev.key === 'Enter') commitEditor(activeEditor).catch(() => {});
-      if (ev.key === 'Escape') cancelEditor(activeEditor);
-    };
+    // Attention : ta route renvoie result.membres (pas result.data)
+    (result.membres || []).forEach(m => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${m.id}</td>
+        <td>${m.prenom || ''} ${m.nom || ''}</td>
+        <td>${m.email || '-'}</td>
+        <td>${m.telephone || '-'}</td>
+        <td>${m.filiere || '-'}</td>
+        <td>${m.anneeEtude || '-'}</td>
+        <td>${m.role || '-'}</td>
+        <td>${m.poste || '-'}</td>
+        <td>${m.estActif ? 'Oui' : 'Non'}</td>
+        <td>${m.createdAt ? new Date(m.createdAt).toLocaleDateString('fr-FR') : '-'}</td>
+        <td>
+          <button class="btn btn-small btn-primary" onclick="alert('Modifier ID ${m.id}')">
+            <i class="fas fa-edit"></i> Modifier
+          </button>
+          <button class="btn btn-small btn-secondary" onclick="alert('Rôle ID ${m.id}')">
+            <i class="fas fa-user-cog"></i> Rôle
+          </button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
 
-    const onBlur = () => {
-      // small timeout to allow click on other controls
-      setTimeout(() => {
-        if (document.activeElement !== input) commitEditor(activeEditor).catch(() => {});
-      }, 120);
-    };
+    if (result.membres.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="11">Aucun membre trouvé</td></tr>';
+    }
 
-    input.addEventListener('keydown', onKey);
-    input.addEventListener('blur', onBlur);
-
-    activeEditor = { cell, tr, input, col, initialValue, onKey, onBlur };
+  } catch (error) {
+    console.error('Erreur chargement membres:', error);
+    tbody.innerHTML = `<tr><td colspan="11" style="color:red">Erreur: ${error.message}</td></tr>`;
   }
-
-  // Commit an active editor (sends request and updates row)
-  async function commitEditor(editor) {
-    if (!editor) return;
-    const { cell, tr, input, col, initialValue } = editor;
-    const memberId = tr.getAttribute('data-id');
-    let newValue = (input.value ?? '').toString().trim();
-
-    // If nothing changed, cancel
-    if (newValue === initialValue || (newValue === '' && initialValue === '-')) {
-      cancelEditor(editor);
-      return;
-    }
-
-    // Determine backend field name and transform value where needed
-    let fieldName;
-    let sendValue = newValue;
-
-    switch (col) {
-      case 1: fieldName = 'nom_prenom'; break;
-      case 2: fieldName = 'email'; break;
-      case 3: fieldName = 'telephone'; break;
-      case 4: fieldName = 'filiere'; break;
-      case 5: fieldName = 'anneeEtude'; break;
-      case 6: fieldName = 'role'; break;
-      case 7: fieldName = 'poste'; if (sendValue === '') sendValue = null; break;
-      case 8: fieldName = 'estActif'; sendValue = (newValue === '1' || newValue === 'true'); break;
-      default: cancelEditor(editor); return;
-    }
-
-    try {
-      await updateMemberField(memberId, fieldName, sendValue);
-
-      // Update dataset and cell display
-      if (col === 1) {
-        // Split nom/prenom
-        const parts = newValue.split(' ');
-        tr.dataset.nom = parts.shift() || '';
-        tr.dataset.prenom = parts.join(' ') || '';
-        cell.textContent = newValue || '-';
-      } else if (col === 8) {
-        tr.dataset.actif = sendValue ? '1' : '0';
-        cell.textContent = sendValue ? 'Oui' : 'Non';
-      } else if (col === 5) {
-        tr.dataset.annee = newValue || '';
-        cell.textContent = newValue || '-';
-      } else {
-        // map dataset keys
-        const keyMap = { 2: 'email', 3: 'telephone', 4: 'filiere', 6: 'role', 7: 'poste' };
-        const k = keyMap[col];
-        if (k) tr.dataset[k] = (sendValue === null ? '' : sendValue);
-        cell.textContent = newValue || '-';
-      }
-
-      // cleanup
-      input.removeEventListener('keydown', editor.onKey);
-      input.removeEventListener('blur', editor.onBlur);
-      cell.classList.remove('editing');
-      activeEditor = null;
-
-      showMessage('message', 'Membre modifié avec succès', false);
-    } catch (err) {
-      // On error, revert
-      showMessage('message', 'Erreur lors de la modification', true);
-      cancelEditor(editor);
-    }
-  }
-
-  // Cancel and revert editor
-  function cancelEditor(editor) {
-    if (!editor) return;
-    const { cell, input, initialValue } = editor;
-    if (input) {
-      input.removeEventListener('keydown', editor.onKey);
-      input.removeEventListener('blur', editor.onBlur);
-    }
-    cell.textContent = initialValue;
-    cell.classList.remove('editing');
-    activeEditor = null;
-  }
-
-
-
-  // Function to update a single field
-  async function updateMemberField(memberId, fieldName, value) {
-    const token = localStorage.getItem('token');
-    let data = {};
-
-  // Handle special cases
-    if (fieldName === 'nom_prenom') {
-      const [nom, ...prenomParts] = value.split(' ');
-      data.nom = nom;
-      data.prenom = prenomParts.join(' ');
-    } else if (fieldName === 'estActif') {
-      data[fieldName] = value;
-    } else {
-      data[fieldName] = value || null;
-    }
-
-    try {
-      const response = await fetch(`http://localhost:5000/api/membres/${memberId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        showMessage('message', result.message || 'Membre modifié avec succès', false);
-      } else {
-        showMessage('message', result.message || 'Erreur lors de la modification', true);
-        throw new Error(result.message);
-      }
-    } catch (err) {
-      showMessage('message', 'Erreur serveur', true);
-      throw err;
-    }
-  }
-
-  // Fermer le modal
-  closeBtn.forEach(btn => {
-    btn.onclick = () => {
-      modal.style.display = 'none';
-      editModal.style.display = 'none';
-    };
-  });
-
-  window.onclick = (e) => {
-    if (e.target === modal) {
-      modal.style.display = 'none';
-    }
-    if (e.target === editModal) {
-      editModal.style.display = 'none';
-    }
-  };
-
-  // Soumettre le formulaire
-  roleForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const role = document.getElementById('roleSelect').value;
-    const poste = document.getElementById('posteSelect').value || null;
-
-    if (!role) {
-      showMessage('message', 'Veuillez sélectionner un rôle', true);
-      return;
-    }
-
-    const token = localStorage.getItem('token');
-
-    try {
-      const response = await fetch(`http://localhost:5000/api/membres/${currentMemberId}/role`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ role, poste })
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        showMessage('message', result.message || 'Rôle assigné avec succès', false);
-        modal.style.display = 'none';
-        setTimeout(() => location.reload(), 1500);
-      } else {
-        showMessage('message', result.message || 'Erreur lors de l\'assignation du rôle', true);
-      }
-    } catch (err) {
-      showMessage('message', 'Erreur serveur', true);
-    }
-  });
-
-  // Soumettre le formulaire d'édition
-  editForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const data = {
-      nom: document.getElementById('editNom').value.trim(),
-      prenom: document.getElementById('editPrenom').value.trim(),
-      email: document.getElementById('editEmail').value.trim(),
-      telephone: document.getElementById('editTelephone').value.trim() || null,
-      filiere: document.getElementById('editFiliere').value.trim() || null,
-      anneeEtude: document.getElementById('editAnneeEtude').value || null,
-      role: document.getElementById('editRole').value,
-      poste: document.getElementById('editPoste').value || null,
-      estActif: document.getElementById('editEstActif').value === '1'
-    };
-
-    if (!data.nom || !data.prenom || !data.email) {
-      showMessage('message', 'Nom, prénom et email sont obligatoires', true);
-      return;
-    }
-
-    const token = localStorage.getItem('token');
-
-    try {
-      const response = await fetch(`http://localhost:5000/api/membres/${currentMemberId}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        showMessage('message', result.message || 'Membre modifié avec succès', false);
-        editModal.style.display = 'none';
-        setTimeout(() => location.reload(), 1500);
-      } else {
-        showMessage('message', result.message || 'Erreur lors de la modification', true);
-      }
-    } catch (err) {
-      showMessage('message', 'Erreur serveur', true);
-    }
-  });
-  })();
 }
+
+
+// ================================================
+// EXPOSER LES FONCTIONS
+// ================================================
+window.loadActivities = loadActivities;
+window.showCancelModal = showCancelModal;
+window.cancelActivity = cancelActivity;
+window.populateCategorySelect = populateCategorySelect;
+window.updateUserInterface = updateUserInterface;
+
+console.log('✅ === script.js CHARGE AVEC SUCCES ===');
+

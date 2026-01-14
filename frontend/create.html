@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Créer une activité - Club FSTT</title>
+    <link rel="stylesheet" href="style1.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <h1>🏓 Club FSTT</h1>
+                <span class="subtitle">Créer une activité</span>
+            </div>
+            <div class="nav-links">
+                <a href="gestion_activite.html">
+                    <i class="fas fa-arrow-left"></i> Retour à la gestion
+                </a>
+                <div class="user-info">
+                    <span id="user-role"></span>
+                    <button id="logout-btn" class="btn btn-small">Déconnexion</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="form-container">
+            <h2><i class="fas fa-plus-circle"></i> Créer une nouvelle activité</h2>
+            
+            <div id="message-container" class="message-container"></div>
+            
+            <form id="create-form">
+                <div class="form-group">
+                    <label for="titre"><i class="fas fa-heading"></i> Titre de l'activité *</label>
+                    <input type="text" id="titre" name="titre" required 
+                           placeholder="Ex: Atelier de programmation Python">
+                </div>
+                
+                <div class="form-group">
+                    <label for="description"><i class="fas fa-align-left"></i> Description</label>
+                    <textarea id="description" name="description" 
+                              placeholder="Décrivez l'activité, les objectifs, le programme..."></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="dateDebut"><i class="fas fa-calendar-plus"></i> Date de début *</label>
+                        <input type="datetime-local" id="dateDebut" name="dateDebut" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="dateFin"><i class="fas fa-calendar-minus"></i> Date de fin</label>
+                        <input type="datetime-local" id="dateFin" name="dateFin">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="lieu"><i class="fas fa-map-marker-alt"></i> Lieu *</label>
+                        <input type="text" id="lieu" name="lieu" required 
+                               placeholder="Ex: Salle B12, FSTT">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="placesMax"><i class="fas fa-users"></i> Nombre de places max</label>
+                        <input type="number" id="placesMax" name="placesMax" 
+                               min="1" max="1000" value="20">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="categorie_id"><i class="fas fa-tag"></i> Catégorie</label>
+                    <select id="categorie_id" name="categorie_id">
+                        <option value="">Sélectionnez une catégorie</option>
+                        <!-- Les catégories seront chargées par JavaScript -->
+                    </select>
+                </div>
+                
+                <div class="form-actions">
+                    <a href="gestion_activite.html" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i> Créer l'activité
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>© 2024 Club FSTT - Université Hassan II de Casablanca</p>
+        </div>
+    </footer>
+
+        <script src="auth.js"></script>
+        <script src="script.js"></script>
+</body>
+</html>

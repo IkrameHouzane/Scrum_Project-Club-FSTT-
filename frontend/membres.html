@@ -43,77 +43,114 @@
 
       <!-- Modal pour assigner le rôle -->
       <div id="roleModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content modal-compact">
           <span class="close">&times;</span>
           <h3>Assigner un rôle</h3>
-          <form id="roleForm">
-            <label for="roleSelect">Rôle :</label>
-            <select id="roleSelect" required>
-              <option value="">Sélectionner un rôle</option>
-              <option value="MEMBRE">Membre</option>
-              <option value="MEMBRE_BUREAU">Membre Bureau</option>
-              <option value="ADMIN">Administrateur</option>
-            </select>
-            <label for="posteSelect">Poste (optionnel) :</label>
-            <select id="posteSelect">
-              <option value="">Sélectionner un poste</option>
-              <option value="Vice-Président">Vice-Président</option>
-              <option value="Trésorier">Trésorier</option>
-              <option value="Chef de cellule ">Chef de cellule </option>
-              <option value="RH">RH</option>
-            </select>
-            <button type="submit" class="btn btn-primary">Assigner</button>
+          <form id="roleForm" class="form-compact">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="roleSelect">Rôle :</label>
+                <select id="roleSelect" required>
+                  <option value="">Sélectionner un rôle</option>
+                  <option value="MEMBRE">Membre</option>
+                  <option value="MEMBRE_BUREAU">Membre Bureau</option>
+                  <option value="ADMIN">Administrateur</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="posteSelect">Poste (optionnel) :</label>
+                <select id="posteSelect">
+                  <option value="">Sélectionner un poste</option>
+                  <option value="Vice-Président">Vice-Président</option>
+                  <option value="Trésorier">Trésorier</option>
+                  <option value="Chef de cellule ">Chef de cellule </option>
+                  <option value="RH">RH</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Assigner</button>
+            </div>
           </form>
         </div>
       </div>
 
       <!-- Modal pour modifier un membre -->
       <div id="editModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content modal-compact">
           <span class="close">&times;</span>
           <h3>Modifier un membre</h3>
-          <form id="editForm">
-            <label for="editNom">Nom :</label>
-            <input type="text" id="editNom" required>
+          <form id="editForm" class="form-compact">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="editNom">Nom :</label>
+                <input type="text" id="editNom" required>
+              </div>
+              <div class="form-group">
+                <label for="editPrenom">Prénom :</label>
+                <input type="text" id="editPrenom" required>
+              </div>
+            </div>
 
-            <label for="editPrenom">Prénom :</label>
-            <input type="text" id="editPrenom" required>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="editEmail">Email :</label>
+                <input type="email" id="editEmail" required>
+              </div>
+              <div class="form-group">
+                <label for="editTelephone">Téléphone :</label>
+                <input type="text" id="editTelephone">
+              </div>
+            </div>
 
-            <label for="editEmail">Email :</label>
-            <input type="email" id="editEmail" required>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="editFiliere">Filière :</label>
+                <input type="text" id="editFiliere">
+              </div>
+              <div class="form-group">
+                <label for="editAnneeEtude">Année d'étude :</label>
+                <input type="text" id="editAnneeEtude">
+              </div>
+            </div>
 
-            <label for="editTelephone">Téléphone :</label>
-            <input type="text" id="editTelephone">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="editRole">Rôle :</label>
+                <select id="editRole" required>
+                  <option value="MEMBRE">Membre</option>
+                  <option value="MEMBRE_BUREAU">Membre Bureau</option>
+                  <option value="ADMIN">Administrateur</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="editPoste">Poste :</label>
+                <select id="editPoste">
+                  <option value="">Aucun poste</option>
+                  <option value="Vice-Président">Vice-Président</option>
+                  <option value="Trésorier">Trésorier</option>
+                  <option value="Chef de cellule ">Chef de cellule </option>
+                  <option value="RH">RH</option>
+                </select>
+              </div>
+            </div>
 
-            <label for="editFiliere">Filière :</label>
-            <input type="text" id="editFiliere">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="editEstActif">Actif :</label>
+                <select id="editEstActif">
+                  <option value="1">Oui</option>
+                  <option value="0">Non</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <!-- Spacer for alignment -->
+              </div>
+            </div>
 
-            <label for="editAnneeEtude">Année d'étude :</label>
-            <input type="text" id="editAnneeEtude">
-
-            <label for="editRole">Rôle :</label>
-            <select id="editRole" required>
-              <option value="MEMBRE">Membre</option>
-              <option value="MEMBRE_BUREAU">Membre Bureau</option>
-              <option value="ADMIN">Administrateur</option>
-            </select>
-
-            <label for="editPoste">Poste :</label>
-            <select id="editPoste">
-              <option value="">Aucun poste</option>
-              <option value="Vice-Président">Vice-Président</option>
-              <option value="Trésorier">Trésorier</option>
-              <option value="Chef de cellule ">Chef de cellule </option>
-              <option value="RH">RH</option>
-            </select>
-
-            <label for="editEstActif">Actif :</label>
-            <select id="editEstActif">
-              <option value="1">Oui</option>
-              <option value="0">Non</option>
-            </select>
-
-            <button type="submit" class="btn btn-primary">Modifier</button>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Modifier</button>
+            </div>
           </form>
         </div>
       </div>

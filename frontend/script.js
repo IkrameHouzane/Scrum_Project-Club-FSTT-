@@ -1349,10 +1349,10 @@ async function loadMembersList() {
         <td>${m.estActif ? 'Oui' : 'Non'}</td>
         <td>${m.createdAt ? new Date(m.createdAt).toLocaleDateString('fr-FR') : '-'}</td>
         <td>
-          <button class="btn btn-small btn-primary" onclick="alert('Modifier ID ${m.id}')">
+          <button class="btn btn-small btn-primary" onclick="openEditModal(${m.id}, '${m.nom.replace(/'/g, "\\'")}', '${m.prenom.replace(/'/g, "\\'")}', '${m.email.replace(/'/g, "\\'")}', '${m.telephone || ''}', '${m.filiere || ''}', '${m.anneeEtude || ''}', '${m.role}', '${m.poste || ''}', ${m.estActif})">
             <i class="fas fa-edit"></i> Modifier
           </button>
-          <button class="btn btn-small btn-secondary" onclick="alert('Rôle ID ${m.id}')">
+          <button class="btn btn-small btn-secondary" onclick="openRoleModal(${m.id}, '${m.nom.replace(/'/g, "\\'")}', '${m.prenom.replace(/'/g, "\\'")}', '${m.role}', '${m.poste || ''}')">
             <i class="fas fa-user-cog"></i> Rôle
           </button>
         </td>
@@ -1600,6 +1600,189 @@ async function confirmerInscriptionDepuisModal(activityId) {
 }
 
 // ================================================
+// FONCTIONS POUR LA GESTION DES MEMBRES (ADMIN)
+// ================================================
+
+// Ouvrir le modal d'édition d'un membre
+function openEditModal(id, nom, prenom, email, telephone, filiere, anneeEtude, role, poste, estActif) {
+  console.log('📝 Ouverture modal édition - ID:', id);
+
+  // Remplir le formulaire
+  document.getElementById('editNom').value = nom || '';
+  document.getElementById('editPrenom').value = prenom || '';
+  document.getElementById('editEmail').value = email || '';
+  document.getElementById('editTelephone').value = telephone || '';
+  document.getElementById('editFiliere').value = filiere || '';
+  document.getElementById('editAnneeEtude').value = anneeEtude || '';
+  document.getElementById('editRole').value = role || 'MEMBRE';
+  document.getElementById('editPoste').value = poste || '';
+  document.getElementById('editEstActif').value = estActif ? '1' : '0';
+
+  // Stocker l'ID du membre
+  document.getElementById('editForm').dataset.memberId = id;
+
+  // Afficher le modal
+  document.getElementById('editModal').style.display = 'flex';
+}
+
+// Ouvrir le modal d'assignation de rôle
+function openRoleModal(id, nom, prenom, role, poste) {
+  console.log('👤 Ouverture modal rôle - ID:', id);
+
+  // Afficher le nom du membre
+  document.querySelector('#roleModal h3').textContent = `Assigner un rôle à ${prenom} ${nom}`;
+
+  // Remplir le formulaire
+  document.getElementById('roleSelect').value = role || 'MEMBRE';
+  document.getElementById('posteSelect').value = poste || '';
+
+  // Stocker l'ID du membre
+  document.getElementById('roleForm').dataset.memberId = id;
+
+  // Afficher le modal
+  document.getElementById('roleModal').style.display = 'flex';
+}
+
+// Gestionnaire de soumission du formulaire d'édition
+document.addEventListener('DOMContentLoaded', () => {
+  const editForm = document.getElementById('editForm');
+  if (editForm) {
+    editForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      console.log('📝 Soumission formulaire édition');
+
+      const memberId = editForm.dataset.memberId;
+      if (!memberId) {
+        showNotification('Erreur: ID du membre manquant', true);
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const data = {
+        nom: document.getElementById('editNom').value.trim(),
+        prenom: document.getElementById('editPrenom').value.trim(),
+        email: document.getElementById('editEmail').value.trim(),
+        telephone: document.getElementById('editTelephone').value.trim() || null,
+        filiere: document.getElementById('editFiliere').value.trim() || null,
+        anneeEtude: document.getElementById('editAnneeEtude').value || null,
+        role: document.getElementById('editRole').value,
+        poste: document.getElementById('editPoste').value || null,
+        estActif: document.getElementById('editEstActif').value === '1'
+      };
+
+      console.log('📤 Données à envoyer:', data);
+
+      try {
+        const response = await fetch(`${API_BASE_URL_MEMBRES}/${memberId}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        console.log('📥 Réponse:', result);
+
+        if (response.ok && result.success) {
+          showNotification('Membre modifié avec succès !', false);
+
+          // Fermer le modal
+          document.getElementById('editModal').style.display = 'none';
+
+          // Recharger la liste des membres
+          setTimeout(() => loadMembersList(), 1000);
+        } else {
+          showNotification(result.message || 'Erreur lors de la modification', true);
+        }
+      } catch (error) {
+        console.error('❌ Erreur:', error);
+        showNotification('Erreur serveur lors de la modification', true);
+      }
+    });
+  }
+
+  // Gestionnaire de soumission du formulaire de rôle
+  const roleForm = document.getElementById('roleForm');
+  if (roleForm) {
+    roleForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      console.log('👤 Soumission formulaire rôle');
+
+      const memberId = roleForm.dataset.memberId;
+      if (!memberId) {
+        showNotification('Erreur: ID du membre manquant', true);
+        return;
+      }
+
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const data = {
+        role: document.getElementById('roleSelect').value,
+        poste: document.getElementById('posteSelect').value || null
+      };
+
+      console.log('📤 Données à envoyer:', data);
+
+      try {
+        const response = await fetch(`${API_BASE_URL_MEMBRES}/${memberId}/role`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        console.log('📥 Réponse:', result);
+
+        if (response.ok && result.success) {
+          showNotification('Rôle assigné avec succès !', false);
+
+          // Fermer le modal
+          document.getElementById('roleModal').style.display = 'none';
+
+          // Recharger la liste des membres
+          setTimeout(() => loadMembersList(), 1000);
+        } else {
+          showNotification(result.message || 'Erreur lors de l\'assignation du rôle', true);
+        }
+      } catch (error) {
+        console.error('❌ Erreur:', error);
+        showNotification('Erreur serveur lors de l\'assignation du rôle', true);
+      }
+    });
+  }
+
+  // Gestionnaire de fermeture des modals
+  document.querySelectorAll('.modal .close').forEach(closeBtn => {
+    closeBtn.addEventListener('click', () => {
+      closeBtn.closest('.modal').style.display = 'none';
+    });
+  });
+
+  // Fermer les modals en cliquant en dehors
+  document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+  });
+});
+
+// ================================================
 // EXPOSER LES FONCTIONS
 // ================================================
 window.loadActivities = loadActivities;
@@ -1608,6 +1791,8 @@ window.cancelActivity = cancelActivity;
 window.populateCategorySelect = populateCategorySelect;
 window.updateUserInterface = updateUserInterface;
 window.showInscriptionModal = showInscriptionModal;
+window.openEditModal = openEditModal;
+window.openRoleModal = openRoleModal;
 
 console.log('✅ === script.js CHARGE AVEC SUCCES ===');
 

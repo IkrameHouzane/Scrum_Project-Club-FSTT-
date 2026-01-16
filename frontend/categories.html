@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Catégories - Club FSTT</title>
+    <link rel="stylesheet" href="style1.css">
+    <link rel="stylesheet" href="categories.css">
+<style>
+    /* Ajustements finaux pour le design premium */
+    .container {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+    
+    /* Logo amélioré */
+    .logo h1::before {
+        content: '🏓';
+        margin-right: 8px;
+        font-size: 1.4em;
+        animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+    
+    /* Effet de verre sur la navbar */
+    .navbar {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    }
+    
+    /* Amélioration des transitions */
+    .btn, .category-card, .nav-links a {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Style pour le bouton de déconnexion */
+    #logout-btn {
+        transition: all 0.2s ease;
+    }
+    
+    #logout-btn:hover i {
+        animation: shake 0.5s ease;
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-2px); }
+        75% { transform: translateX(2px); }
+    }
+    
+    /* Effet de pulse sur le bouton principal */
+    #create-category-btn {
+        animation: pulse-glow 2s infinite;
+    }
+    
+    @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 4px 16px rgba(16, 185, 129, 0.4); }
+        50% { box-shadow: 0 4px 24px rgba(16, 185, 129, 0.6); }
+    }
+    
+    /* Style pour les messages */
+    .message-container {
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+    
+    /* Amélioration du footer */
+    .footer {
+        position: relative;
+        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    }
+    
+    .footer::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.5), transparent);
+    }
+    
+    /* Style pour les statistiques améliorées */
+    .stat-card:nth-child(odd) .stat-icon {
+        background: linear-gradient(135deg, var(--accent-blue) 0%, #2563eb 100%);
+    }
+    
+    .stat-card:nth-child(even) .stat-icon {
+        background: linear-gradient(135deg, var(--accent-purple) 0%, #7c3aed 100%);
+    }
+    
+    /* Responsive amélioré */
+    @media (max-width: 768px) {
+        .container {
+            padding: 0 1.25rem;
+        }
+        
+        .page-header h2 {
+            font-size: 1.5rem;
+        }
+        
+        .category-card {
+            border-radius: 12px;
+        }
+    }
+</style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <h1>🏓 Club FSTT</h1>
+                <span class="subtitle">Gestion des Catégories</span>
+            </div>
+            <div class="nav-links">
+                <a href="dashboard_admin.html">
+                    <i class="fas fa-home"></i> Dashboard
+                </a>
+                <a href="membres.html">
+                    <i class="fas fa-users"></i> Membres
+                </a>
+                <a href="gestion_activite.html">
+                    <i class="fas fa-calendar-alt"></i> Activités
+                </a>
+                <a href="categories.html" class="active">
+                    <i class="fas fa-tags"></i> Catégories
+                </a>
+                <div class="user-info">
+                    <span id="user-role"></span>
+                    <button id="logout-btn" class="btn btn-small btn-danger">
+                        <i class="fas fa-sign-out-alt"></i> Déconnexion
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="container">
+        <!-- En-tête -->
+        <div class="page-header">
+            <h2><i class="fas fa-tags"></i> Gestion des Catégories d'Activités</h2>
+            <button id="create-category-btn" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Créer une catégorie
+            </button>
+        </div>
+
+        <!-- Messages -->
+        <div id="message-container" class="message-container"></div>
+
+        <!-- Conteneur des catégories -->
+        <div id="categories-container" class="categories-grid">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i> Chargement des catégories...
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Créer/Modifier Catégorie -->
+    <div id="category-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">
+                    <i class="fas fa-tag"></i> <span>Créer une catégorie</span>
+                </h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="category-form">
+                    <div class="form-group">
+                        <label for="category-nom">
+                            <i class="fas fa-heading"></i> Nom de la catégorie *
+                        </label>
+                        <input 
+                            type="text" 
+                            id="category-nom" 
+                            name="nom" 
+                            required 
+                            placeholder="Ex: Sport, Culture, Formation..."
+                            minlength="2"
+                            maxlength="100"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category-description">
+                            <i class="fas fa-align-left"></i> Description
+                        </label>
+                        <textarea 
+                            id="category-description" 
+                            name="description" 
+                            placeholder="Description de la catégorie (optionnelle)"
+                            rows="4"
+                            maxlength="500"
+                        ></textarea>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary close-modal">
+                            <i class="fas fa-times"></i> Annuler
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Enregistrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Confirmation Suppression -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-exclamation-triangle"></i> Confirmer la suppression
+                </h3>
+                <span class="close-delete-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="delete-message"></p>
+                <div class="warning-box">
+                    <i class="fas fa-info-circle"></i>
+                    <p>Cette action est irréversible.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-delete-modal">
+                    <i class="fas fa-times"></i> Annuler
+                </button>
+                <button id="confirm-delete-btn" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Oui, supprimer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Statistiques -->
+    <div id="stats-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-chart-bar"></i> Statistiques - <span id="stats-category-name"></span>
+                </h3>
+                <span class="close-stats-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="stats-content" class="stats-grid">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i> Chargement...
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-stats-modal">
+                    <i class="fas fa-times"></i> Fermer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>© 2024 Club FSTT - Panel Administrateur</p>
+            <p>Gestion des catégories d'activités</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+    <script src="categories.js"></script>
+</body>
+</html>

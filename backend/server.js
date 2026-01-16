@@ -21,12 +21,14 @@ const { router: membresRouter } = require('./routes/membres');
 const adminRouter = require('./routes/admin');
 const activiteRoutes = require('./routes/activiteRoutes');
 const inscriptionsRouter = require('./routes/inscriptions');
+const categoriesRouter = require('./routes/categories');
 
 app.use('/api/membres', membresRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/activites', activiteRoutes);
 app.use('/api/inscriptions', inscriptionsRouter);
 app.use('/api/stats', statsRouter);
+app.use('/api/categories', categoriesRouter);
 // Route test
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Serveur + MySQL OK' });

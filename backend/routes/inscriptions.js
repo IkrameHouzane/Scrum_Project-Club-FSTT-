@@ -24,6 +24,9 @@ router.get('/all', requireBureauOrAdmin, InscriptionsController.getAllInscriptio
 // US3.2 : Mes inscriptions
 router.get('/mes/:membre_id', InscriptionsController.getMesInscriptions);
 
+// US1 : Historique des participations
+router.get('/historique/:membre_id', InscriptionsController.getHistorique);
+
 // US3.4 : Bureau - inscriptions par activité
 router.get('/activite/:activite_id', requireBureauOrAdmin, InscriptionsController.getInscriptionsActivite);
 

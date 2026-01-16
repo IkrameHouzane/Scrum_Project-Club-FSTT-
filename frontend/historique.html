@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon Historique - Club FSTT</title>
+  <link rel="stylesheet" href="style1.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <h1>🏓 Club FSTT</h1>
+        <span class="subtitle">Mon Historique</span>
+      </div>
+      <div class="nav-links">
+        <a href="activite_page.html">
+          <i class="fas fa-calendar-alt"></i> Activités
+        </a>
+        <a href="mes_inscriptions.html">
+          <i class="fas fa-ticket-alt"></i> Mes inscriptions
+        </a>
+        <a href="historique.html" class="active">
+          <i class="fas fa-history"></i> Mon historique
+        </a>
+        <a href="create.html" id="create-link" style="display:none;">
+          <i class="fas fa-plus-circle"></i> Créer
+        </a>
+        <div class="user-info">
+          <a href="profile.html" id="profile-link" class="profile-link" style="display:none; margin-right: 15px;">
+            <i class="fas fa-user-circle"></i> Mon profil
+          </a>
+          <span id="user-role" style="display:none;"></span>
+          <button id="login-btn" class="btn btn-small" style="display:none;" onclick="window.location.href='login.html'">Se connecter</button>
+          <button id="logout-btn" class="btn btn-small btn-danger" style="display:none; margin-left:10px;">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container">
+    <div class="page-header">
+      <h2><i class="fas fa-history"></i> Mon Historique de Participations</h2>
+      <div class="header-actions">
+        <button id="refresh-btn" class="btn btn-secondary">
+          <i class="fas fa-sync-alt"></i> Actualiser
+        </button>
+      </div>
+    </div>
+
+    <div id="message-container" class="message-container"></div>
+
+    <div class="activities-grid" id="historique-container">
+      <div class="loading">
+        <i class="fas fa-spinner fa-spin"></i> Chargement de votre historique...
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <p>© 2026 Club FSTT</p>
+      <p>Développé avec ❤️ par l'équipe Scrum</p>
+    </div>
+  </footer>
+
+  <script src="auth.js"></script>
+  <script src="historique.js"></script>
+</body>
+</html>

@@ -118,6 +118,38 @@ static async getAllInscriptions(req, res) {
         });
     }
 }
+
+// US1 : Historique des participations
+static async getHistorique(req, res) {
+    try {
+        const membre_id = parseInt(req.params.membre_id);
+
+        if (isNaN(membre_id)) {
+            return res.status(400).json({ error: 'ID de membre invalide' });
+        }
+
+        console.log('📋 Récupération historique pour membre:', membre_id);
+        console.log('👤 Utilisateur authentifié:', req.user.id, req.user.role);
+
+        // Vérifier que l'utilisateur demande son propre historique (ou est bureau/admin)
+        const isBureauOrAdmin = ['MEMBRE_BUREAU', 'ADMIN'].includes(req.user.role);
+        if (!isBureauOrAdmin && req.user.id !== membre_id) {
+            return res.status(403).json({
+                error: 'Vous ne pouvez voir que votre propre historique'
+            });
+        }
+
+        const historique = await Inscription.getHistoriqueByMembre(membre_id);
+
+        console.log('✅ Historique trouvé:', historique.length);
+
+        // Retourner directement le tableau
+        res.json(historique);
+    } catch (error) {
+        console.error('❌ Erreur récupération historique:', error);
+        res.status(500).json({ error: error.message });
+    }
+}
 }
    
 

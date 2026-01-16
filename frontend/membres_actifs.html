@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Membres Actifs - Club FSTT</title>
+  <link rel="stylesheet" href="style1.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .leaderboard-container {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+
+    .leaderboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .leaderboard-title {
+      font-size: 1.5rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .leaderboard-filter {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .leaderboard-filter label {
+      font-weight: 600;
+      color: #666;
+    }
+
+    .leaderboard-filter select {
+      padding: 0.5rem 1rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+
+    .leaderboard-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .member-card {
+      display: grid;
+      grid-template-columns: 70px 1fr auto;
+      gap: 1.5rem;
+      align-items: center;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      background: #f8f9fa;
+      border-radius: 12px;
+      transition: all 0.3s;
+      border-left: 4px solid transparent;
+    }
+
+    .member-card:hover {
+      background: #e9ecef;
+      transform: translateX(5px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .member-card.rank-1 { 
+      border-left-color: #ffd700; 
+      background: linear-gradient(135deg, #fff9e6, #f8f9fa);
+    }
+
+    .member-card.rank-2 { 
+      border-left-color: #c0c0c0; 
+      background: linear-gradient(135deg, #f5f5f5, #f8f9fa);
+    }
+
+    .member-card.rank-3 { 
+      border-left-color: #cd7f32; 
+      background: linear-gradient(135deg, #fff4e6, #f8f9fa);
+    }
+
+    .rank-badge {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: white;
+      background: linear-gradient(135deg, #6c757d, #495057);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .rank-badge.gold {
+      background: linear-gradient(135deg, #ffd700, #ffed4e);
+      color: #333;
+      box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
+    }
+
+    .rank-badge.silver {
+      background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+      color: #333;
+      box-shadow: 0 4px 15px rgba(192, 192, 192, 0.4);
+    }
+
+    .rank-badge.bronze {
+      background: linear-gradient(135deg, #cd7f32, #e89a5f);
+      color: white;
+      box-shadow: 0 4px 15px rgba(205, 127, 50, 0.4);
+    }
+
+    .member-info {
+      flex: 1;
+    }
+
+    .member-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    .member-meta {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.85rem;
+      color: #666;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+
+    .member-meta span {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .member-categories {
+      font-size: 0.8rem;
+      color: #999;
+      font-style: italic;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      text-align: center;
+    }
+
+    .stat-item {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 2px solid #f0f0f0;
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #4CAF50;
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+
+    .stat-label {
+      font-size: 0.7rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .role-badge {
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .role-admin { background: #e3f2fd; color: #1976d2; }
+    .role-bureau { background: #fff3e0; color: #f57c00; }
+    .role-membre { background: #f5f5f5; color: #616161; }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #999;
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      opacity: 0.3;
+    }
+
+    @media (max-width: 768px) {
+      .member-card {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .rank-badge {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <h1>🏓 Club FSTT</h1>
+        <span class="subtitle">Membres Actifs</span>
+      </div>
+      <div class="nav-links">
+        <a href="dashboard_admin.html">
+          <i class="fas fa-home"></i> Dashboard
+        </a>
+        <a href="membres.html">
+          <i class="fas fa-users"></i> Membres
+        </a>
+        <a href="gestion_activite.html">
+          <i class="fas fa-calendar-alt"></i> Activités
+        </a>
+        <a href="statistiques.html">
+          <i class="fas fa-chart-bar"></i> Statistiques
+        </a>
+        <a href="activites_populaires.html">
+          <i class="fas fa-trophy"></i> Populaires
+        </a>
+        <a href="membres_actifs.html" class="active">
+          <i class="fas fa-star"></i> Membres Actifs
+        </a>
+        <div class="user-info">
+          <span id="user-role"></span>
+          <button id="logout-btn" class="btn btn-small btn-danger">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Contenu principal -->
+  <main class="container">
+    <div class="page-header">
+      <h1><i class="fas fa-star"></i> Classement des Membres les Plus Actifs</h1>
+      <button id="refresh-btn" class="btn btn-secondary">
+        <i class="fas fa-sync-alt"></i> Actualiser
+      </button>
+    </div>
+
+    <div id="message-container" class="message-container"></div>
+
+    <div class="leaderboard-container">
+      <div class="leaderboard-header">
+        <h3 class="leaderboard-title">
+          <i class="fas fa-medal"></i> Hall of Fame
+        </h3>
+        <div class="leaderboard-filter">
+          <label for="limit-select">Afficher :</label>
+          <select id="limit-select">
+            <option value="5">Top 5</option>
+            <option value="10" selected>Top 10</option>
+            <option value="20">Top 20</option>
+            <option value="50">Top 50</option>
+          </select>
+        </div>
+      </div>
+
+      <ul class="leaderboard-list" id="leaderboard-list">
+        <div class="loading">
+          <i class="fas fa-spinner fa-spin"></i> Chargement du classement...
+        </div>
+      </ul>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <p>© 2026 Club FSTT</p>
+      <p>Tableau de bord administrateur</p>
+    </div>
+  </footer>
+
+  <script src="auth.js"></script>
+  <script src="membres_actifs.js"></script>
+</body>
+</html>

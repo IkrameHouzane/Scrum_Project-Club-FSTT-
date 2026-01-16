@@ -187,6 +187,7 @@ if (isProfilePage) {
 
     try {
       const url = `${window.API_BASE_URL_MEMBRES}/profile`;
+  
       console.log('📡 Appel API:', url);
       
       const response = await fetch(url, {
@@ -267,7 +268,7 @@ if (isProfilePage) {
       });
 
       console.log('✅ Profil chargé avec succès !');
-
+       
     } catch (error) {
       console.error('❌ Erreur chargement profil:', error);
       showMessage('message', `Erreur: ${error.message}`, true);
@@ -415,7 +416,7 @@ function updateUserInterface() {
   const createLink = document.getElementById('create-link');
   const profileLink = document.getElementById('profile-link'); // Ajouté
   const mesInscriptionsLink = document.getElementById('mes-inscriptions-link');
-  
+  const historiqueLink = document.getElementById('historique-link');
   if (user && user.id) {
     if (userRoleEl) {
       userRoleEl.textContent = `${user.prenom || user.nom} (${user.role})`;
@@ -432,7 +433,10 @@ function updateUserInterface() {
     if (mesInscriptionsLink) {
       mesInscriptionsLink.style.display = 'inline-block';
     }
-    
+    // Afficher "Mon historique" si l'utilisateur est connecté
+    if (historiqueLink) {
+      historiqueLink.style.display = 'inline-block';
+    }
     if (createLink) {
       const canCreate = user.role === 'ADMIN' || user.role === 'MEMBRE_BUREAU';
       createLink.style.display = canCreate ? 'inline-block' : 'none';

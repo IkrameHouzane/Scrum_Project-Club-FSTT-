@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Statistiques - Club FSTT</title>
+  <link rel="stylesheet" href="style1.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+      border-left: 4px solid #4CAF50;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card.primary { border-left-color: #4CAF50; }
+    .stat-card.secondary { border-left-color: #2196F3; }
+    .stat-card.warning { border-left-color: #ff9800; }
+    .stat-card.danger { border-left-color: #f44336; }
+
+    .stat-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .stat-card-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: white;
+    }
+
+    .stat-card-icon.primary { background: linear-gradient(135deg, #4CAF50, #2e7d32); }
+    .stat-card-icon.secondary { background: linear-gradient(135deg, #2196F3, #1565c0); }
+    .stat-card-icon.warning { background: linear-gradient(135deg, #ff9800, #e65100); }
+    .stat-card-icon.danger { background: linear-gradient(135deg, #f44336, #c62828); }
+
+    .stat-card-title {
+      font-size: 0.9rem;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0;
+    }
+
+    .stat-card-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #333;
+      margin: 0.5rem 0;
+    }
+
+    .stat-card-subtitle {
+      font-size: 0.85rem;
+      color: #999;
+      margin: 0;
+    }
+
+    .chart-container {
+      background: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+
+    .chart-title {
+      font-size: 1.3rem;
+      margin-bottom: 1.5rem;
+      color: #333;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .list-stats {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .list-stats li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.5rem;
+      background: #f8f9fa;
+      border-radius: 8px;
+      transition: background 0.3s;
+    }
+
+    .list-stats li:hover {
+      background: #e9ecef;
+    }
+
+    .list-stats-label {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .list-stats-value {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #4CAF50;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 0.5rem;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4CAF50, #2e7d32);
+      transition: width 0.5s ease;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <h1>🏓 Club FSTT</h1>
+        <span class="subtitle">Statistiques</span>
+      </div>
+      <div class="nav-links">
+        <a href="dashboard_admin.html">
+          <i class="fas fa-home"></i> Dashboard
+        </a>
+        <a href="membres.html">
+          <i class="fas fa-users"></i> Membres
+        </a>
+        <a href="gestion_activite.html">
+          <i class="fas fa-calendar-alt"></i> Activités
+        </a>
+        <a href="statistiques.html" class="active">
+          <i class="fas fa-chart-bar"></i> Statistiques
+        </a>
+        <div class="user-info">
+          <span id="user-role"></span>
+          <button id="logout-btn" class="btn btn-small btn-danger">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Contenu principal -->
+  <main class="container">
+    <div class="page-header">
+      <h1><i class="fas fa-chart-line"></i> Statistiques Globales du Club</h1>
+      <button id="refresh-btn" class="btn btn-secondary">
+        <i class="fas fa-sync-alt"></i> Actualiser
+      </button>
+    </div>
+
+    <div id="message-container" class="message-container"></div>
+
+    <!-- Cartes de statistiques principales -->
+    <div id="stats-cards" class="stats-grid">
+      <div class="loading">
+        <i class="fas fa-spinner fa-spin"></i> Chargement des statistiques...
+      </div>
+    </div>
+
+    <!-- Graphiques détaillés -->
+    <div id="charts-container">
+      <!-- Sera rempli par JavaScript -->
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <p>© 2026 Club FSTT</p>
+      <p>Tableau de bord administrateur</p>
+    </div>
+  </footer>
+
+  <script src="auth.js"></script>
+  <script src="statistiques.js"></script>
+</body>
+</html>

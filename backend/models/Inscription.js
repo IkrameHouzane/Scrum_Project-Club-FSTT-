@@ -115,6 +115,32 @@ class Inscription {
             throw error;
         }
     }
+
+
+    // US1 : Historique des participations (activités passées uniquement)
+static async getHistoriqueByMembre(membre_id) {
+    try {
+        console.log('🔍 Inscription.getHistoriqueByMembre - membre_id:', membre_id);
+        const rows = await db.query(`
+            SELECT i.id, i.activite_id, i.membre_id, i.date_inscription, i.statut,
+                   a.titre, a.dateDebut, a.dateFin, a.lieu, a.statut as activite_statut, 
+                   a.placesMax, a.placesRestantes, a.description,
+                   c.nom as categorie_nom
+            FROM inscriptions i 
+            JOIN activite a ON i.activite_id = a.id
+            LEFT JOIN categories c ON a.categorie_id = c.id
+            WHERE i.membre_id = ? 
+              AND i.statut = 'inscrit'
+              AND (a.statut = 'Terminee' OR a.statut = 'Annulee' OR a.dateFin < NOW())
+            ORDER BY a.dateDebut DESC
+        `, [membre_id]);
+        console.log('✅ Historique trouvé:', rows.length, 'participation(s)');
+        return rows;
+    } catch (error) {
+        console.error('❌ Erreur dans Inscription.getHistoriqueByMembre:', error);
+        throw error;
+    }
+}
 }
 
 module.exports = Inscription;

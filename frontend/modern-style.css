@@ -308,7 +308,7 @@ form {
 .form-group input,
 .form-group select,
 .form-group textarea {
-    padding: 0.875rem 1rem;
+    padding: 0.875rem 3rem 0.875rem 1rem;
     border: 2px solid var(--primary-light);
     border-radius: var(--border-radius);
     font-size: 1rem;
@@ -347,16 +347,27 @@ form {
     font-size: 1rem;
 }
 
+.password-group {
+    position: relative;
+}
+
 .toggle-password {
     position: absolute;
-    right: 1rem;
-    top: 2.4rem;
+    right: 0.5rem;
+    top: 70%;
+    transform: translateY(-50%);
     background: none;
     border: none;
     cursor: pointer;
     color: var(--medium-gray);
     transition: var(--transition);
     font-size: 1rem;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
 }
 
 .toggle-password:hover {

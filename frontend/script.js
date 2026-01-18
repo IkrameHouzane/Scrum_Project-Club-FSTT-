@@ -503,7 +503,14 @@ async function loadActivities() {
     if (statusFilter) params.append('statut', statusFilter);
 
     if (isGestionPage && user.id) {
-      params.append('organisateur_id', user.id);
+      // For ADMIN users, show all activities. For others, show only their activities.
+      if (user.role === 'ADMIN') {
+        console.log('👑 ADMIN: Affichage de toutes les activités');
+        // Don't filter by organisateur_id for admins
+      } else {
+        console.log('👤 Utilisateur normal: Affichage de ses activités uniquement');
+        params.append('organisateur_id', user.id);
+      }
     }
 
     if (params.toString()) {
@@ -680,7 +687,7 @@ function createActivityCard(activity) {
           </button>
         ` : ''}
 
-        <a href="details?id=${activity.id}" class="btn btn-small btn-secondary">
+        <a href="details.html?id=${activity.id}" class="btn btn-small btn-secondary">
           <i class="fas fa-eye"></i> Détails
         </a>
 

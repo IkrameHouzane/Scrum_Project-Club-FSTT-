@@ -1,23 +1,64 @@
 // Dashboard Admin - Données Dynamiques
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Vérifier que l'utilisateur est authentifié
+    if (window.auth && !window.auth.isAuthenticated()) {
+        window.location.href = 'login.html';
+        return;
+    }
+    
     loadDashboardData();
 });
 
 async function loadDashboardData() {
     try {
-        // Récupérer les statistiques
-        const [membresData, activitesData, inscriptionsData, categoriesData] = await Promise.all([
-            fetch('/api/membres').then(res => res.json()),
-            fetch('/api/activites').then(res => res.json()),
-            fetch('/api/inscriptions').then(res => res.json()),
-            fetch('/api/categories').then(res => res.json())
+        console.log('🔄 Chargement des données du dashboard...');
+        
+        // Récupérer les statistiques avec authentification
+        const [membresResponse, activitesResponse, inscriptionsResponse, categoriesResponse] = await Promise.all([
+            fetch('http://localhost:5000/api/membres', { headers: window.auth?.getAuthHeaders() || {} }),
+            fetch('http://localhost:5000/api/activites'),
+            fetch('http://localhost:5000/api/inscriptions/all', { headers: window.auth?.getAuthHeaders() || {} }),
+            fetch('http://localhost:5000/api/categories', { headers: window.auth?.getAuthHeaders() || {} })
         ]);
+
+        console.log('📊 Réponses API:', {
+            membres: membresResponse.status,
+            activites: activitesResponse.status,
+            inscriptions: inscriptionsResponse.status,
+            categories: categoriesResponse.status
+        });
+
+        // Vérifier les réponses et extraire les données
+        const membresResult = membresResponse.ok ? await membresResponse.json() : { membres: [] };
+        const activitesResult = activitesResponse.ok ? await activitesResponse.json() : { data: [] };
+        const inscriptionsResult = inscriptionsResponse.ok ? await inscriptionsResponse.json() : [];
+        const categoriesResult = categoriesResponse.ok ? await categoriesResponse.json() : { data: [] };
+
+        console.log('📋 Données brutes:', {
+            membres: membresResult,
+            activites: activitesResult,
+            inscriptions: inscriptionsResult,
+            categories: categoriesResult
+        });
+
+        const membresData = membresResult.membres || [];
+        const activitesData = activitesResult.data || [];
+        // Inscriptions API returns array directly, not wrapped in data object
+        const inscriptionsData = Array.isArray(inscriptionsResult) ? inscriptionsResult : [];
+        const categoriesData = categoriesResult.data || [];
+
+        console.log('📈 Données extraites:', {
+            membresCount: membresData.length,
+            activitesCount: activitesData.length,
+            inscriptionsCount: inscriptionsData.length,
+            categoriesCount: categoriesData.length
+        });
 
         // Mettre à jour les nombres affichés
         updateDashboardStats(membresData, activitesData, inscriptionsData, categoriesData);
     } catch (error) {
-        console.error('Erreur lors du chargement des données du dashboard:', error);
+        console.error('❌ Erreur lors du chargement des données du dashboard:', error);
         // Afficher les valeurs par défaut en cas d'erreur
         setDefaultStats();
     }

@@ -1,155 +1,185 @@
+
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestion des Activités - Club FSTT</title>
-  <link rel="stylesheet" href="style_gestion_activite.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Activités - Club FSTT</title>
+    <link rel="stylesheet" href="style_gestion_activite.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
-  <header>
-    <h1>Club Étudiant FSTT</h1>
-    <p>Gestion des Activités</p>
-  </header>
-
-  <nav class="nav-bar">
-    <div class="nav-container">
-      <a href="dashboard.html" class="nav-link"><i class="fas fa-arrow-left"></i> Retour au tableau de bord</a>
-      <div class="nav-user">
-        <span id="user-role"></span>
-        <button id="logout-btn" class="btn btn-outline btn-small">Déconnexion</button>
-      </div>
-    </div>
-  </nav>
-
-  <main>
-    <div class="container">
-      <div class="header-section">
-        <h2>Mes Activités</h2>
-        <a href="create.html" class="btn btn-primary">
-          <i class="fas fa-plus"></i> Créer une activité
-        </a>
-      </div>
-
-      <!-- Messages -->
-      <div id="message-container" class="message" style="display: none;"></div>
-
-      <!-- Filtres et recherche -->
-      <div class="filters-section">
-        <div class="search-box">
-          <i class="fas fa-search"></i>
-          <input type="text" id="search-input" placeholder="Rechercher une activité...">
-        </div>
-        <div class="filter-group">
-          <select id="category-filter">
-            <option value="">Toutes les catégories</option>
-          </select>
-          <select id="status-filter">
-            <option value="">Tous les statuts</option>
-            <option value="Planifiee">Planifiée</option>
-            <option value="Annulee">Annulée</option>
-            <option value="Terminee">Terminée</option>
-          </select>
-        </div>
-        <button id="refresh-btn" class="btn btn-secondary">
-          <i class="fas fa-sync-alt"></i> Actualiser
-        </button>
-      </div>
-
-      <!-- Conteneur des activités -->
-      <div id="activities-container" class="activities-grid">
-        <div class="loading">
-          <i class="fas fa-spinner fa-spin"></i>
-          <p>Chargement des activités...</p>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <!-- Modal de confirmation d'annulation -->
-  <div id="cancel-modal" class="modal" style="display: none;">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3>Annuler l'activité</h3>
-        <span class="close-modal">&times;</span>
-      </div>
-      <div class="modal-body">
-        <p id="cancel-message">Êtes-vous sûr de vouloir annuler cette activité ?</p>
-        <p class="warning-text">
-          <i class="fas fa-exclamation-triangle"></i>
-          Cette action est irréversible. <span id="participants-count">0</span> participant(s) seront notifié(s).
-        </p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary close-modal">Annuler</button>
-        <button id="cancel-confirm-btn" class="btn btn-danger">
-          <i class="fas fa-ban"></i> Oui, annuler l'activité
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Scripts - ORDRE IMPORTANT -->
-  <script src="auth.js"></script>
-  <script src="script.js"></script>
-  
-  <!-- Script de débogage -->
-  <script>
-    console.log('🔍 Gestion Activités - Débogage');
-    
-    // Vérifier que les scripts sont chargés
-    setTimeout(() => {
-      console.log('📋 Vérification des scripts:');
-      console.log('- window.auth disponible:', !!window.auth);
-      console.log('- window.loadActivities disponible:', typeof window.loadActivities);
-      console.log('- API_BASE_URL_ACTIVITES:', window.API_BASE_URL_ACTIVITES);
-      console.log('- Token dans localStorage:', !!localStorage.getItem('token'));
-      console.log('- User dans localStorage:', !!localStorage.getItem('user'));
-      
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      console.log('- User ID:', user.id);
-      console.log('- User Role:', user.role);
-      
-      // Si loadActivities n'est pas disponible, essayer de l'appeler manuellement
-      if (typeof window.loadActivities === 'function') {
-        console.log('✅ Appel manuel de loadActivities...');
-        window.loadActivities();
-      } else {
-        console.error('❌ loadActivities n\'est pas disponible!');
-      }
-    }, 1000);
-  </script>
-  
-  <!-- Script de secours si script.js ne charge pas -->
-  <script>
-    console.log('🔍 Vérification du chargement...');
-    
-    // Attendre un peu que les scripts se chargent
-    setTimeout(() => {
-      if (typeof window.loadActivities !== 'function') {
-        console.error('❌ script.js n\'a pas chargé correctement!');
-        console.log('📂 Vérifiez que script.js existe dans le même dossier que ce HTML');
-        
-        // Afficher un message d'erreur à l'utilisateur
-        const container = document.getElementById('activities-container');
-        if (container) {
-          container.innerHTML = `
-            <div style="text-align: center; padding: 40px; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; margin: 20px;">
-              <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #ffc107; margin-bottom: 20px;"></i>
-              <h3 style="color: #856404;">Erreur de chargement des scripts</h3>
-              <p style="color: #856404; margin: 15px 0;">Le fichier <strong>script.js</strong> n'a pas pu être chargé.</p>
-              <p style="color: #856404; margin: 15px 0;">Vérifiez que le fichier existe dans : <code>/frontend/script.js</code></p>
-              <button onclick="location.reload()" class="btn btn-primary" style="margin-top: 20px;">
-                <i class="fas fa-redo"></i> Recharger la page
-              </button>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <h1>Club FSTT</h1>
+                <span class="subtitle">Gestion des Activités</span>
             </div>
-          `;
-        }
-      } else {
-        console.log('✅ Scripts chargés avec succès');
-      }
-    }, 500);
-  </script>
+            <div class="nav-links">
+                <a href="dashboard-admin.html">
+                    <i class="fas fa-arrow-left"></i> Retour au Dashboard
+                </a>
+                <a href="membres.html">
+                    <i class="fas fa-users"></i> Membres
+                </a>
+                <a href="inscriptionsAdmin.html">
+                    <i class="fas fa-ticket-alt"></i> Inscriptions
+                </a>
+                <a href="statistiques.html">
+                    <i class="fas fa-chart-bar"></i> Statistiques
+                </a>
+                <div class="user-info">
+                    <span id="user-role"></span>
+                    <button id="logout-btn" class="btn btn-primary btn-small"
+                        onclick="window.location.href='login.html'">Déconnexion</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="container">
+        <div class="page-header">
+            <div>
+                <h1><i class="fas fa-calendar-alt"></i> Gestion des Activités</h1>
+                <p>Gérez toutes vos activités du club</p>
+            </div>
+            <a href="create.html" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Créer une activité
+            </a>
+        </div>
+
+        <!-- Messages -->
+        <div id="message-container" class="message" style="display: none;"></div>
+
+        <!-- Section filtres et recherche -->
+        <div class="dashboard-section">
+            <div class="filters-container">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Rechercher une activité...">
+                </div>
+                <div class="filter-group">
+                    <select id="category-filter">
+                        <option value="">Toutes les catégories</option>
+                    </select>
+                    <select id="status-filter">
+                        <option value="">Tous les statuts</option>
+                        <option value="Planifiee">Planifiée</option>
+                        <option value="Annulee">Annulée</option>
+                        <option value="Terminee">Terminée</option>
+                    </select>
+                    <button id="refresh-btn" class="btn btn-secondary">
+                        <i class="fas fa-sync-alt"></i> Actualiser
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conteneur des activités -->
+        <div id="activities-container" class="activities-grid">
+            <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Chargement des activités...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>© 2026 Club FSTT - Gestion des Activités</p>
+            <p>Accès réservé aux administrateurs</p>
+        </div>
+    </footer>
+
+    <!-- Modal de confirmation d'annulation -->
+    <div id="cancel-modal" class="modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> Annuler l'activité</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="cancel-message">Êtes-vous sûr de vouloir annuler cette activité ?</p>
+                <div class="warning-box">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <p><strong>Cette action est irréversible</strong></p>
+                        <p><span id="participants-count">0</span> participant(s) seront notifié(s).</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal">Annuler</button>
+                <button id="cancel-confirm-btn" class="btn btn-danger">
+                    <i class="fas fa-ban"></i> Confirmer l'annulation
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+    <script src="script.js"></script>
+
+    <!-- Script de débogage -->
+    <script>
+        console.log('🔍 Gestion Activités - Débogage');
+
+        setTimeout(() => {
+            console.log('📋 Vérification des scripts:');
+            console.log('- window.auth disponible:', !!window.auth);
+            console.log('- window.loadActivities disponible:', typeof window.loadActivities);
+            console.log('- API_BASE_URL_ACTIVITES:', window.API_BASE_URL_ACTIVITES);
+            console.log('- Token dans localStorage:', !!localStorage.getItem('token'));
+            console.log('- User dans localStorage:', !!localStorage.getItem('user'));
+
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            console.log('- User ID:', user.id);
+            console.log('- User Role:', user.role);
+
+            if (typeof window.loadActivities === 'function') {
+                console.log('✅ Appel manuel de loadActivities...');
+                window.loadActivities();
+            } else {
+                console.error('❌ loadActivities n\'est pas disponible!');
+            }
+        }, 1000);
+    </script>
+
+    <!-- Script de secours -->
+    <script>
+        console.log('🔍 Vérification du chargement...');
+
+        setTimeout(() => {
+            if (typeof window.loadActivities !== 'function') {
+                console.error('❌ script.js n\'a pas chargé correctement!');
+                console.log('📂 Vérifiez que script.js existe dans le même dossier que ce HTML');
+
+                const container = document.getElementById('activities-container');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h3>Erreur de chargement des scripts</h3>
+                            <p>Le fichier <strong>script.js</strong> n'a pas pu être chargé.</p>
+                            <p>Vérifiez que le fichier existe dans : <code>/frontend/script.js</code></p>
+                            <button onclick="location.reload()" class="btn btn-primary">
+                                <i class="fas fa-redo"></i> Recharger la page
+                            </button>
+                        </div>
+                    `;
+                }
+            } else {
+                console.log('✅ Scripts chargés avec succès');
+            }
+        }, 500);
+    </script>
 </body>
+
 </html>

@@ -1,44 +1,598 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard - Club FSTT</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Variables globales - Style moderne */
+    :root {
+      --primary-color: #10b981;
+      --primary-dark: #059669;
+      --primary-light: #d1fae5;
+      --primary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --accent-amber: #f59e0b;
+      
+      --dark-charcoal: #1f2937;
+      --dark-gray: #374151;
+      --medium-gray: #6b7280;
+      --light-gray: #9ca3af;
+      --pale-gray: #f3f4f6;
+      --white: #ffffff;
+      
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --info: #3b82f6;
+      
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      
+      --border-radius-sm: 8px;
+      --border-radius: 12px;
+      --border-radius-lg: 16px;
+      
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.6;
+      color: var(--dark-charcoal);
+      background: linear-gradient(135deg, #f8fafc 0%, #f0fdf4 50%, #f8fafc 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Navigation - Style moderne unifié */
+    .navbar {
+      background: var(--white);
+      border-bottom: 2px solid var(--primary-light);
+      padding: 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 2rem;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 200px;
+    }
+
+    .logo h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin: 0;
+    }
+
+    .logo .subtitle {
+      color: var(--medium-gray);
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding-left: 0.75rem;
+      border-left: 2px solid var(--primary-light);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      flex: 1;
+    }
+
+    .nav-links a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      color: var(--dark-charcoal);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+      border-radius: var(--border-radius);
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+
+    .nav-links a:hover {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .nav-links a i {
+      font-size: 1rem;
+      color: var(--primary-color);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-left: 1rem;
+      padding-left: 1rem;
+      border-left: 2px solid var(--primary-light);
+    }
+
+    .user-info span {
+      color: var(--primary-color);
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .user-info .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.6rem 1.25rem;
+      border-radius: var(--border-radius-lg);
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: var(--transition);
+      cursor: pointer;
+      border: 2px solid transparent;
+      gap: 0.5rem;
+      background: var(--primary-gradient);
+      color: var(--white);
+      box-shadow: var(--shadow-md);
+    }
+
+    .user-info .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Header principal */
+    header {
+      background: var(--primary-gradient);
+      color: white;
+      text-align: center;
+      padding: 3rem 1rem;
+      box-shadow: var(--shadow-lg);
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    header p {
+      font-size: 1.2rem;
+      opacity: 0.95;
+    }
+
+    /* Conteneur principal */
+    .container {
+      max-width: 1400px;
+      margin: 2rem auto;
+      padding: 0 2rem;
+      flex: 1;
+    }
+
+    /* Section de bienvenue */
+    .welcome-section {
+      text-align: center;
+      padding: 3rem 2rem;
+      background: var(--white);
+      border: 1px solid var(--primary-light);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--shadow-md);
+      margin-bottom: 2rem;
+      animation: slideUp 0.8s ease-out;
+    }
+
+    .welcome-section h2 {
+      font-size: 2.2rem;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+      font-weight: 700;
+    }
+
+    .welcome-section p {
+      font-size: 1.1rem;
+      color: var(--medium-gray);
+      max-width: 600px;
+      margin: 0 auto 2rem;
+    }
+
+    /* Cartes d'information */
+    .info-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .info-card {
+      background: var(--white);
+      border: 1px solid var(--primary-light);
+      border-radius: var(--border-radius-lg);
+      padding: 2rem;
+      box-shadow: var(--shadow-md);
+      text-align: center;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    .info-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--primary-gradient);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+    }
+
+    .info-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(16, 185, 129, 0.15);
+      border-color: var(--primary-color);
+    }
+
+    .info-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .info-card i {
+      font-size: 2.5rem;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+
+    .info-card h3 {
+      font-size: 1.3rem;
+      color: var(--dark-charcoal);
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .info-card p {
+      color: var(--medium-gray);
+      font-size: 0.95rem;
+    }
+
+    /* Section header */
+    .header-section {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 2rem;
+      padding: 2rem;
+      background: var(--white);
+      border: 1px solid var(--primary-light);
+      border-radius: var(--border-radius-lg);
+      box-shadow: var(--shadow-md);
+      gap: 0.5rem;
+      text-align: center;
+    }
+
+    .header-section h2 {
+      font-size: 1.8rem;
+      color: var(--dark-charcoal);
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .header-section p {
+      color: var(--medium-gray);
+      font-size: 0.95rem;
+      margin: 0;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--white);
+      border-top: 2px solid var(--primary-light);
+      padding: 2rem;
+      text-align: center;
+      color: var(--medium-gray);
+      font-size: 0.95rem;
+      margin-top: auto;
+      box-shadow: var(--shadow-sm);
+    }
+
+    footer p {
+      margin: 0.5rem 0;
+      font-weight: 500;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .nav-container {
+        padding: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .nav-links {
+        flex-basis: 100%;
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .logo {
+        min-width: auto;
+      }
+
+      .logo h1 {
+        font-size: 1.25rem;
+      }
+
+      .nav-links {
+        flex-direction: column;
+        width: 100%;
+        gap: 0.5rem;
+      }
+
+      .nav-links a {
+        width: 100%;
+        justify-content: flex-start;
+        padding: 0.75rem;
+      }
+
+      .user-info {
+        width: 100%;
+        margin-left: 0;
+        padding-left: 0;
+        border-left: none;
+        border-top: 2px solid var(--primary-light);
+        padding-top: 1rem;
+        margin-top: 1rem;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .user-info .btn {
+        width: 100%;
+      }
+      
+      header h1 {
+        font-size: 2rem;
+      }
+      
+      header p {
+        font-size: 1.1rem;
+      }
+      
+      .info-cards {
+        grid-template-columns: 1fr;
+      }
+      
+      .welcome-section {
+        padding: 2rem 1rem;
+      }
+      
+      .welcome-section h2 {
+        font-size: 1.8rem;
+      }
+
+      .container {
+        padding: 0 1rem;
+      }
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Scroll personnalisé */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--pale-gray);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary-light);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary-color);
+    }
+  </style>
 </head>
 <body>
+  <!-- Navigation - Style moderne unifié -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <h1>Club FSTT</h1>
+        <span class="subtitle">Tableau de Bord</span>
+      </div>
+      <div class="nav-links">
+        <a id="manageActivitiesBtn" href="gestion_activite.html" style="display: none;">
+          <i class="fas fa-tasks"></i> Gestion des activités
+        </a>
+        <a href="membres.html">
+          <i class="fas fa-users"></i> Membres
+        </a>
+        <a href="inscriptionsAdmin.html">
+          <i class="fas fa-ticket-alt"></i> Inscriptions
+        </a>
+        <a href="statistiques.html">
+          <i class="fas fa-chart-bar"></i> Statistiques
+        </a>
+        <a id="profileBtn" href="profile.html">
+          <i class="fas fa-user"></i> Mon profil
+        </a>
+        <div class="user-info">
+          <span id="user-role"></span>
+          <button id="logout-btn" class="btn">
+            <i class="fas fa-sign-out-alt"></i> Déconnexion
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
   <header>
     <h1>Club Étudiant FSTT</h1>
-    <p>Tableau de bord</p>
+    <p>Tableau de bord utilisateur</p>
   </header>
 
-  <main>
-    <div class="container container-wide">
-      <h2>Bienvenue</h2>
-
-      <div class="header-section" style="justify-content:center; gap:1rem; margin-top:1.5rem;">
-        <a id="manageActivitiesBtn" class="btn btn-secondary" href="gestion_activite.html" style="display: none;">Gérer les activités</a>
-        <a id="profileBtn" class="btn btn-outline" href="profile.html">Mon profil</a>
+  <main class="container">
+    <div class="welcome-section">
+      <h2 id="welcome-title">Bienvenue sur votre tableau de bord</h2>
+      <p>Gérez votre profil, consultez les activités du club et restez informé des dernières actualités.</p>
+      
+      <div class="info-cards">
+        <div class="info-card">
+          <i class="fas fa-calendar-alt"></i>
+          <h3>Activités à venir</h3>
+          <p>Consultez les prochaines activités du club</p>
+        </div>
+        
+        <div class="info-card">
+          <i class="fas fa-users"></i>
+          <h3>Membres du club</h3>
+          <p>Découvrez les autres membres du club</p>
+        </div>
+        
+        <div class="info-card">
+          <i class="fas fa-bullhorn"></i>
+          <h3>Annonces</h3>
+          <p>Restez informé des dernières nouvelles</p>
+        </div>
+        
+        <div class="info-card">
+          <i class="fas fa-trophy"></i>
+          <h3>Mes participations</h3>
+          <p>Vos activités et réalisations</p>
+        </div>
       </div>
+    </div>
 
+    <div class="header-section">
+      <h2>Mes dernières activités</h2>
+      <p>Consultez rapidement vos prochaines activités programmées</p>
     </div>
   </main>
+
+  <footer>
+    <p>© 2024 Club Étudiant FSTT - Tous droits réservés</p>
+    <p>Tableau de bord utilisateur</p>
+  </footer>
 
   <script>
     // Accès restreint : uniquement membres non-admin
     (function(){
       const token = localStorage.getItem('token');
-      if (!token) { window.location.href = 'login.html'; return; }
+      if (!token) { 
+        window.location.href = 'login.html'; 
+        return; 
+      }
+      
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (!user || !user.role) { window.location.href = 'login.html'; return; }
-      if (user.role === 'ADMIN') { window.location.href = 'dashboard_admin.html'; return; }
+      if (!user || !user.role) { 
+        window.location.href = 'login.html'; 
+        return; 
+      }
+      
+      if (user.role === 'ADMIN') { 
+        window.location.href = 'dashboard_admin.html'; 
+        return; 
+      }
+
+      // Afficher le rôle de l'utilisateur
+      const userRoleElement = document.getElementById('user-role');
+      if (userRoleElement && user.role) {
+        const roleMap = {
+          'MEMBRE_BUREAU': 'Membre Bureau',
+          'MEMBRE': 'Membre',
+          'ADMIN': 'Administrateur'
+        };
+        userRoleElement.textContent = roleMap[user.role] || user.role;
+      }
+
+      // Mettre à jour le titre de bienvenue avec le nom de l'utilisateur
+      const welcomeTitle = document.getElementById('welcome-title');
+      if (welcomeTitle && user.name) {
+        welcomeTitle.textContent = `Bienvenue, ${user.name} !`;
+      }
 
       // Afficher le bouton de gestion des activités pour les MEMBRE_BUREAU
       if (user.role === 'MEMBRE_BUREAU') {
         const manageBtn = document.getElementById('manageActivitiesBtn');
         if (manageBtn) {
-          manageBtn.style.display = 'inline-block';
+          manageBtn.style.display = 'inline-flex';
         }
+      }
+
+      // Gestion de la déconnexion
+      const logoutBtn = document.getElementById('logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = 'login.html';
+        });
       }
     })();
   </script>

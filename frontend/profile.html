@@ -1,13 +1,421 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mon Profil - Club FSTT</title>
-  <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* Variables globales */
+    :root {
+      --primary-color: #4CAF50;
+      --secondary-color: #2196F3;
+      --danger-color: #f44336;
+      --success-color: #4CAF50;
+      --dark-color: #333;
+      --light-color: #f8f9fa;
+      --gray-color: #6c757d;
+      --border-color: #dee2e6;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --shadow-hover: 0 8px 15px rgba(0, 0, 0, 0.1);
+      --radius: 8px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: var(--dark-color);
+      background-color: #f5f7fa;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navigation */
+    .navbar {
+      background: white;
+      box-shadow: var(--shadow);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .nav-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 70px;
+    }
+
+    .logo {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .logo h1 {
+      font-size: 1.5rem;
+      color: var(--primary-color);
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .logo .subtitle {
+      font-size: 0.85rem;
+      color: var(--gray-color);
+      font-weight: 500;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .nav-links a,
+    .nav-links .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      color: white;
+      background-color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 600;
+      padding: 0.65rem 1.2rem;
+      border-radius: var(--radius);
+      transition: all 0.3s;
+      font-size: 0.9rem;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .nav-links a:hover,
+    .nav-links .btn:hover {
+      background-color: #3d8b40;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    /* Header principal */
+    header {
+      background: linear-gradient(135deg, var(--primary-color), #2e7d32);
+      color: white;
+      text-align: center;
+      padding: 3rem 1rem;
+      box-shadow: var(--shadow);
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    header p {
+      font-size: 1.2rem;
+      opacity: 0.95;
+    }
+
+    /* Conteneur principal */
+    main {
+      flex: 1;
+      padding: 2rem 0;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    .container > h2 {
+      font-size: 2rem;
+      color: var(--primary-color);
+      margin-bottom: 2rem;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    .container > h2::before {
+      content: "\f007";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+    }
+
+    /* Section Profil Info */
+    #profileInfo {
+      background: white;
+      border-radius: var(--radius);
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+      border-top: 4px solid var(--primary-color);
+    }
+
+    #profileInfo p {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    #profileInfo p:last-child {
+      border-bottom: none;
+    }
+
+    #profileInfo strong {
+      color: var(--primary-color);
+      min-width: 150px;
+      font-weight: 600;
+    }
+
+    #profileInfo span {
+      color: var(--dark-color);
+      flex: 1;
+    }
+
+    /* Section Modifier */
+    .container > h3 {
+      font-size: 1.5rem;
+      color: var(--primary-color);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .container > h3::before {
+      content: "\f304";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+    }
+
+    /* Formulaire */
+    #editProfileForm {
+      background: white;
+      border-radius: var(--radius);
+      padding: 2rem;
+      box-shadow: var(--shadow);
+      margin-bottom: 2rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .form-group label i {
+      width: 20px;
+      text-align: center;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius);
+      font-size: 1rem;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    }
+
+    .form-group input:hover {
+      border-color: var(--primary-color);
+    }
+
+    /* Bouton submit */
+    #editProfileForm button[type="submit"] {
+      width: 100%;
+      padding: 1rem;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+
+    #editProfileForm button[type="submit"]:hover {
+      background-color: #3d8b40;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    #editProfileForm button[type="submit"]::before {
+      content: "\f0c7";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+    }
+
+    /* Messages */
+    .message {
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border-radius: var(--radius);
+      font-weight: 500;
+      display: none;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .message.success {
+      background-color: rgba(76, 175, 80, 0.1);
+      color: var(--success-color);
+      border: 1px solid var(--success-color);
+    }
+
+    .message.error {
+      background-color: rgba(244, 67, 54, 0.1);
+      color: var(--danger-color);
+      border: 1px solid var(--danger-color);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      margin-top: 3rem;
+      color: var(--gray-color);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border-color);
+      background: white;
+    }
+
+    /* Animations */
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    #profileInfo,
+    #editProfileForm {
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .nav-container {
+        flex-direction: column;
+        padding: 1rem;
+        gap: 1rem;
+      }
+
+      header h1 {
+        font-size: 2rem;
+      }
+
+      header p {
+        font-size: 1.1rem;
+      }
+
+      .container > h2 {
+        font-size: 1.6rem;
+      }
+
+      #profileInfo p {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.3rem;
+      }
+
+      #profileInfo strong {
+        min-width: auto;
+      }
+    }
+
+    /* Scroll personnalisé */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--primary-color);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3d8b40;
+    }
+  </style>
 </head>
 <body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <h1>Club FSTT</h1>
+        <span class="subtitle">Mon Profil</span>
+      </div>
+      <div class="nav-links">
+        <a href="dashboard.html">
+          <i class="fas fa-home"></i> Tableau de bord
+        </a>
+      </div>
+    </div>
+  </nav>
+
   <header>
     <h1>Club Étudiant FSTT</h1>
     <p>Mon espace personnel</p>
@@ -61,6 +469,9 @@
     </div>
   </main>
 
+  <footer>
+    <p>© 2024 Club Étudiant FSTT - Tous droits réservés</p>
+  </footer>
   
   <script src="auth.js"></script>
   <script src="script.js"></script>

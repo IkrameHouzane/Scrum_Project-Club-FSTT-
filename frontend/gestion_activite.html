@@ -94,6 +94,33 @@
   <script src="auth.js"></script>
   <script src="script.js"></script>
   
+  <!-- Script de débogage -->
+  <script>
+    console.log('🔍 Gestion Activités - Débogage');
+    
+    // Vérifier que les scripts sont chargés
+    setTimeout(() => {
+      console.log('📋 Vérification des scripts:');
+      console.log('- window.auth disponible:', !!window.auth);
+      console.log('- window.loadActivities disponible:', typeof window.loadActivities);
+      console.log('- API_BASE_URL_ACTIVITES:', window.API_BASE_URL_ACTIVITES);
+      console.log('- Token dans localStorage:', !!localStorage.getItem('token'));
+      console.log('- User dans localStorage:', !!localStorage.getItem('user'));
+      
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      console.log('- User ID:', user.id);
+      console.log('- User Role:', user.role);
+      
+      // Si loadActivities n'est pas disponible, essayer de l'appeler manuellement
+      if (typeof window.loadActivities === 'function') {
+        console.log('✅ Appel manuel de loadActivities...');
+        window.loadActivities();
+      } else {
+        console.error('❌ loadActivities n\'est pas disponible!');
+      }
+    }, 1000);
+  </script>
+  
   <!-- Script de secours si script.js ne charge pas -->
   <script>
     console.log('🔍 Vérification du chargement...');
